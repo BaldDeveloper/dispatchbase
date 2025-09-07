@@ -18,9 +18,12 @@ jobs:
 
       - name: Deploy via SSH
         run: |
+          echo "${{ secrets.BH_SSH_KEY }}" > deploy_key
+          chmod 600 deploy_key
+      
           ssh -o StrictHostKeyChecking=no \
               -o IdentitiesOnly=yes \
-              -i ~/.ssh/dispatch_github \
+              -i ~/.ssh/id_rsa \
               ${{ secrets.BH_USER }}@${{ secrets.BH_HOST }} << 'EOF'
             cd /home1/fmnoevmy/public_html/dispatchbase
             git pull origin main
