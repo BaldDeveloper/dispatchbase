@@ -18,9 +18,12 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.BH_USER }}@${{ secrets.BH_HOST }} << 'EOF'
-            cd /home1/fmnoevmy/public_html
+          ssh -o StrictHostKeyChecking=no \
+              -o IdentitiesOnly=yes \
+              -i ~/.ssh/id_rsa \
+              ${{ secrets.BH_USER }}@${{ secrets.BH_HOST }} << 'EOF'
+            cd /home1/fmnoevmy/public_html/DispatchBase
             git pull origin main
             npm install --omit=dev
-            pm2 restart server.js || node server.js &
+            pm2 restart dispatchbase || pm2 start server.js --name dispatchbase
           EOF
