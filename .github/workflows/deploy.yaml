@@ -22,7 +22,7 @@ jobs:
               -o IdentitiesOnly=yes \
               -i ~/.ssh/id_rsa \
               ${{ secrets.BH_USER }}@${{ secrets.BH_HOST }} << 'EOF'
-            cd /home1/fmnoevmy/public_html/DispatchBase
+            cd /home1/fmnoevmy/public_html/dispatchbase
             git pull origin main
             npm install --omit=dev
             pm2 restart dispatchbase || pm2 start server.js --name dispatchbase
