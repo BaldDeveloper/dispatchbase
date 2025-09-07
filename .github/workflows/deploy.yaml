@@ -7,23 +7,26 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.BH_SSH_KEY }}
+      - name: Write SSH key to file
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.BH_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Add known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.BH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH
         run: |
-          echo "${{ secrets.BH_SSH_KEY }}" > deploy_key
-          chmod 600 deploy_key
-      
-          ssh -o StrictHostKeyChecking=no \
+          ssh -i ~/.ssh/deploy_key \
               -o IdentitiesOnly=yes \
-              -i ~/.ssh/id_rsa \
+              -o StrictHostKeyChecking=yes \
               ${{ secrets.BH_USER }}@${{ secrets.BH_HOST }} << 'EOF'
             cd /home1/fmnoevmy/public_html/dispatchbase
             git pull origin main
