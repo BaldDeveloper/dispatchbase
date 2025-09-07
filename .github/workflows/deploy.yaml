@@ -20,7 +20,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
               -o IdentitiesOnly=yes \
-              -i ~/.ssh/id_rsa \
+              -i ~/.ssh/dispatch_github \
               ${{ secrets.BH_USER }}@${{ secrets.BH_HOST }} << 'EOF'
             cd /home1/fmnoevmy/public_html/dispatchbase
             git pull origin main
