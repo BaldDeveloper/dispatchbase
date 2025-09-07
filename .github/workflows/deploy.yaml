@@ -18,11 +18,13 @@ jobs:
           echo "${{ secrets.BH_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Add known hosts
+      - name: Add Bluehost to known hosts
         run: |
           ssh-keyscan -H ${{ secrets.BH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH
+        env:
+          SSH_AUTH_SOCK: ""
         run: |
           ssh -i ~/.ssh/deploy_key \
               -o IdentitiesOnly=yes \
