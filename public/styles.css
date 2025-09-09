@@ -1,0 +1,13 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f8f8f8;
+}
+
+/* Custom negative top margin utilities for more overlap */
+.mt-n-custom-6 { margin-top: -4rem !important; }
+.mt-n-custom-7 { margin-top: -5rem !important; }
+.mt-n-custom-8 { margin-top: -6rem !important; }
+.mt-n-custom-9 { margin-top: -7rem !important; }
+.mt-n-custom-10 { margin-top: -8rem !important; }

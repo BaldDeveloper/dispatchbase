@@ -1,5 +1,0 @@
----
-deployment:
-  tasks:
-    - export DEPLOYPATH=/home1/fmnoevmy/public_html/dispatchbase
-    - /bin/cp -R images $DEPLOYPATH

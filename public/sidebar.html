@@ -1,0 +1,47 @@
+<nav class="sidenav shadow-right sidenav-light">
+    <div class="sidenav-menu">
+        <div class="nav accordion" id="accordionSidenav">
+            <a class="nav-link" href="index.html">Dashboard</a>
+            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseCustomers" aria-expanded="false" aria-controls="collapseCustomers">
+                <div class="nav-link-icon"><i data-feather="user"></i></div>
+                Customers
+                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+            </a>
+            <div class="collapse" id="collapseCustomers" data-bs-parent="#accordionSidenav">
+                <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavCustomers">
+                    <a class="nav-link" href="customer.html">View Customers</a>
+                </nav>
+            </div>
+            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseDashboards" aria-expanded="false" aria-controls="collapseDashboards">
+                <div class="nav-link-icon"><i data-feather="phone"></i></div>
+                Coroners
+                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+            </a>
+            <div class="collapse" id="collapseDashboards" data-bs-parent="#accordionSidenav">
+                <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavCoroners">
+                    <a class="nav-link" href="coroner.html">Add Coroner</a>
+                    <a class="nav-link" href="coroner-view.html">View Coroners</a>
+                </nav>
+            </div>
+            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseTransports" aria-expanded="false" aria-controls="collapseTransports">
+                <div class="nav-link-icon"><i class="fa fa-car"></i></div>
+                Transports
+                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+            </a>
+            <div class="collapse" id="collapseTransports" data-bs-parent="#accordionSidenav">
+                <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavTransports">
+                    <a class="nav-link" href="transport.html">Add Transport</a>
+                    <a class="nav-link" href="transport-pouch.html">Manage Pouch Types</a>
+                    <a class="nav-link" href="transport-log.html">View Logs</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div class="sidenav-footer">
+        <div class="sidenav-footer-content">
+            <div class="sidenav-footer-subtitle">Logged in as:</div>
+            <div class="sidenav-footer-title">Valerie Luna</div>
+        </div>
+    </div>
+</nav>
+
