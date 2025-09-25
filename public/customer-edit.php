@@ -47,9 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
         $error = 'Error deleting customer: ' . htmlspecialchars($e->getMessage());
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || !validate_csrf_token($_POST['csrf_token'])) {
-        die('Invalid CSRF token.');
-    }
     $companyName = trim($_POST['company_name'] ?? '');
     $phoneNumber = trim($_POST['phone_number'] ?? '');
     $emailAddress = trim($_POST['email_address'] ?? '');
@@ -173,7 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                             <?php endif; ?>
                             <?php if ($success !== 'deleted'): ?>
                             <form method="POST">
-                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="company_name" class="form-label required">Company Name</label>

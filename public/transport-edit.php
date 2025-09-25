@@ -3,7 +3,6 @@
 require_once 'database/TransportData.php';
 require_once 'database/Database.php';
 require_once 'database/DecedentData.php';
-require_once __DIR__ . '/../includes/csrf.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);
@@ -57,9 +56,6 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || !validate_csrf_token($_POST['csrf_token'])) {
-        die('Invalid CSRF token.');
-    }
     $firmId = $_POST['firm_id'] ?? '';
     $firmDate = $_POST['firm_date'] ?? '';
     $firmAccountType = $_POST['firm_account_type'] ?? '';
@@ -166,7 +162,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             <?php endif; ?>
                             <form id="transportForm" method="POST" action="">
-                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                                 <?php include('firm-edit.php'); ?>
                                 <hr />
                                 <?php include('decedent-edit.php'); ?>

@@ -1,7 +1,6 @@
 <?php
 require_once 'database/CoronerData.php';
 require_once 'database/Database.php';
-require_once __DIR__ . '/../includes/csrf.php';
 
 $db = new Database();
 $coronerRepo = new CoronerData($db);
@@ -26,10 +25,6 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || !validate_csrf_token($_POST['csrf_token'])) {
-        die('Invalid CSRF token.');
-    }
-
     $coronerName = trim($_POST['cooroner_name'] ?? '');
     $phoneNumber = trim($_POST['phone_number'] ?? '');
     $emailAddress = trim($_POST['email_address'] ?? '');
@@ -150,7 +145,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             <?php endif; ?>
                             <form method="POST">
-                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token()); ?>">
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="cooroner_name" class="form-label required">Coroner Name</label>
