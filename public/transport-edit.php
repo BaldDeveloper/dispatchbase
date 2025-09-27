@@ -3,9 +3,11 @@
 require_once 'database/TransportData.php';
 require_once 'database/Database.php';
 require_once 'database/DecedentData.php';
+require_once 'database/CustomerData.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);
+$customerRepo = new CustomerData($db);
 
 $success = false;
 $error = '';
@@ -55,7 +57,19 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) && $mode === 'edit' && $id) {
+    try {
+        $decedentRepo = new DecedentData($db);
+        $decedentRepo->deleteByTransportId((int)$id);
+        $transportRepo->delete((int)$id);
+        $success = 'deleted';
+        // Clear form values so form does not show after deletion
+        $firmId = $firmDate = $firmAccountType = $originLocation = $destinationLocation = $permitNumber = $tagNumber = '';
+        $decedentFirstName = $decedentMiddleName = $decedentLastName = $decedentEthnicity = $decedentGender = '';
+    } catch (Exception $e) {
+        $error = 'Error deleting transport: ' . htmlspecialchars($e->getMessage());
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $firmId = $_POST['firm_id'] ?? '';
     $firmDate = $_POST['firm_date'] ?? '';
     $firmAccountType = $_POST['firm_account_type'] ?? '';
@@ -68,8 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($firmId && $firmDate && $firmAccountType) {
         try {
             if ($mode === 'edit' && $transport_id) {
-                // Update transport record here if you have an update method
-                // $transportRepo->update($transport_id, ...fields...);
+                // Update transport record
+                $transportRepo->update(
+                    $transport_id,
+                    (int)$firmId,
+                    $firmDate,
+                    $firmAccountType
+                );
                 // Update decedent table with matching transport_id
                 $decedentRepo->updateByTransportId(
                     $transport_id,
@@ -112,6 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please fill in all required fields.';
     }
 }
+
+$customers = $customerRepo->getAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -165,6 +186,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php include('firm-edit.php'); ?>
                                 <hr />
                                 <?php include('decedent-edit.php'); ?>
+                                <hr />
+                                <?php include('transit-edit.php'); ?>
+                                <hr />
+                                <?php include('times-edit.php'); ?>
                                 <!-- Hidden fields for all other transport columns with default values -->
                                 <input type="hidden" name="decedent_first_name" value="<?= htmlspecialchars($decedentFirstName) ?>" />
                                 <input type="hidden" name="decedent_middle_name" value="<?= htmlspecialchars($decedentMiddleName) ?>" />
@@ -175,7 +200,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" name="destination_location" value="<?= htmlspecialchars($destinationLocation) ?>" />
                                 <input type="hidden" name="permit_number" value="<?= htmlspecialchars($permitNumber) ?>" />
                                 <input type="hidden" name="tag_number" value="<?= htmlspecialchars($tagNumber) ?>" />
-                                <button type="submit" class="btn btn-primary" id="saveTransportBtn">Save Transport</button>
+                                <div class="d-flex justify-content-between mt-4">
+                                    <button type="submit" class="btn btn-primary" id="saveTransportBtn">
+                                        <?= $mode === 'edit' ? 'Update' : 'Add' ?> Transport
+                                    </button>
+                                    <?php if ($mode === 'edit' && $id): ?>
+                                        <button type="submit" name="delete_transport" class="btn btn-secondary" onclick="return confirm('Are you sure you want to delete this transport? This will also delete the associated decedent record.');">Delete Transport</button>
+                                    <?php endif; ?>
+                                </div>
                             </form>
                         </div>
                     </div>

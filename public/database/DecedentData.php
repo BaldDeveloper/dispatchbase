@@ -50,6 +50,13 @@ class DecedentData {
         );
     }
 
+    public function deleteByTransportId(int $transport_id): int {
+        return $this->db->execute(
+            "DELETE FROM decedent WHERE transport_id = ?",
+            [$transport_id]
+        );
+    }
+
     public function insertByTransportId(
         int $transport_id,
         string $first_name,

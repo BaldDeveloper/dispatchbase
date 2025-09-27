@@ -32,8 +32,18 @@
             <div class="collapse" id="collapseTransports" data-bs-parent="#accordionSidenav">
                 <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavTransports">
                     <a class="nav-link" href="transport-edit.php">Add Transport</a>
-                    <a class="nav-link" href="transport-pouch.php">Manage Pouch Types</a>
                     <a class="nav-link" href="transport-list.php">View Logs</a>
+                </nav>
+            </div>
+            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseAdmin" aria-expanded="false" aria-controls="collapseAdmin">
+                <div class="nav-link-icon"><i class="fa fa-cog"></i></div>
+                Administration
+                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+            </a>
+            <div class="collapse" id="collapseAdmin" data-bs-parent="#accordionSidenav">
+                <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavAdmin">
+                    <a class="nav-link" href="pouch-edit.php">Add Pouch Types</a>
+                    <a class="nav-link" href="pouch-list.php">View Pouch Types</a>
                 </nav>
             </div>
         </div>
@@ -45,4 +55,3 @@
         </div>
     </div>
 </nav>
-

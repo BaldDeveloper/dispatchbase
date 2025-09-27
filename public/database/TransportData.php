@@ -36,11 +36,31 @@ class TransportData {
     }
 
     public function getAll(): array {
-        return $this->db->query("SELECT * FROM transport ORDER BY transport_id DESC");
+        // Join transport with decedent to get first and last name
+        $sql = "SELECT t.*, d.first_name AS decedent_first_name, d.last_name AS decedent_last_name
+                FROM transport t
+                LEFT JOIN decedent d ON t.transport_id = d.transport_id
+                ORDER BY t.transport_id DESC";
+        return $this->db->query($sql);
     }
 
     public function findById(int $id): ?array {
         $result = $this->db->query("SELECT * FROM transport WHERE transport_id = ?", [$id]);
         return $result[0] ?? null;
+    }
+
+    public function update(
+        int $transport_id,
+        int $firmId,
+        string $firmDate,
+        string $firmAccountType
+    ): int {
+        $sql = "UPDATE transport SET firm_id = ?, firm_date = ?, firm_account_type = ? WHERE transport_id = ?";
+        return $this->db->execute($sql, [$firmId, $firmDate, $firmAccountType, $transport_id]);
+    }
+
+    public function delete(int $transport_id): int {
+        $sql = "DELETE FROM transport WHERE transport_id = ?";
+        return $this->db->execute($sql, [$transport_id]);
     }
 }

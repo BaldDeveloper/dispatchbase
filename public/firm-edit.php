@@ -20,8 +20,15 @@
             </td>
             <td>
                 <div class="mb-3">
-                    <label for="firm_id" class="form-label required">Firm ID</label>
-                    <input type="number" class="form-control" id="firm_id" name="firm_id" min="0" required value="<?= htmlspecialchars($firmId ?? '') ?>" />
+                    <label for="firm_id" class="form-label required">Firm</label>
+                    <select class="form-control" id="firm_id" name="firm_id" required>
+                        <option value="">Select Firm</option>
+                        <?php foreach ($customers as $customer): ?>
+                            <option value="<?= htmlspecialchars($customer['customer_number']) ?>" <?= ($firmId == $customer['customer_number']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($customer['company_name']) ?> (<?= htmlspecialchars($customer['customer_number']) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </td>
         </tr>
