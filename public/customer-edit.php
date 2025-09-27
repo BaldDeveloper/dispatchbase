@@ -1,17 +1,12 @@
-// Only validate for add/update, not delete
-        var submitter = e.submitter || document.activeElement;
-        if (submitter && submitter.name === 'delete_customer') return;
-        if (!validateRequiredFields(form)) {
-            e.preventDefault();
-        }
-    });
 <?php
 require_once 'database/CustomerData.php';
 require_once 'database/Database.php';
 require_once __DIR__ . '/../includes/csrf.php';
+require_once __DIR__ . '/../includes/states.php';
 
 $db = new Database();
 $customerRepo = new CustomerData($db);
+$states = include __DIR__ . '/../includes/states.php';
 
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
@@ -54,6 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     $address2 = trim($_POST['address_2'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $state = trim($_POST['state'] ?? '');
+    // Validate state abbreviation
+    if (!array_key_exists($state, $states)) {
+        $error = 'Invalid state selected.';
+        $state = '';
+    }
     $zip = trim($_POST['zip'] ?? '');
 
     // Ensure all optional fields are blank if not set
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     $zip = $zip ?: '';
 
     // Basic validation
-    if ($companyName && $state && $emailAddress && $city) {
+    if ($companyName && $state && $emailAddress && $city && !$error) {
         if ($mode === 'add') {
             try {
                 $customerRepo->create(
@@ -197,7 +197,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                     </div>
                                     <div class="col-md-4">
                                         <label for="state" class="form-label required">State</label>
-                                        <input type="text" class="form-control" id="state" name="state" value="<?= htmlspecialchars($state ?? '') ?>" required>
+                                        <select class="form-select" id="state" name="state" required>
+                                            <option value="">Select State</option>
+                                            <?php foreach ($states as $abbr => $name): ?>
+                                                <option value="<?= htmlspecialchars($abbr) ?>" <?= (isset($state) && $state === $abbr) ? 'selected' : '' ?>><?= htmlspecialchars($abbr) ?> - <?= htmlspecialchars($name) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="zip" class="form-label">Zip</label>
@@ -207,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="email_address" class="form-label required">Email Address</label>
-                                        <input type="email" class="form-control" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required>
+                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">
@@ -282,10 +287,45 @@ function validateRequiredFields(form) {
     return true;
 }
 
+// Generic email field validation
+function validateEmailFields(form) {
+    let firstInvalid = null;
+    // Remove previous error highlighting
+    form.querySelectorAll('.email-error').forEach(function(field) {
+        field.classList.remove('email-error');
+    });
+    // Validate email fields
+    form.querySelectorAll('.email-pattern').forEach(function(field) {
+        if (!field.value || field.value.trim() === '') {
+            field.classList.add('email-error');
+            if (!firstInvalid) firstInvalid = field;
+        } else {
+            // Use the same pattern as the HTML attribute
+            var pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!pattern.test(field.value)) {
+                field.classList.add('email-error');
+                if (!firstInvalid) firstInvalid = field;
+            }
+        }
+    });
+    if (firstInvalid) {
+        firstInvalid.focus();
+        return false;
+    }
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var form = document.querySelector('form[method="POST"]');
     if (!form) return;
     form.addEventListener('submit', function(e) {
+        // Only validate for add/update, not delete
+        var submitter = e.submitter || document.activeElement;
+        if (submitter && submitter.name === 'delete_customer') return;
+        if (!validateRequiredFields(form) || !validateEmailFields(form)) {
+            e.preventDefault();
+        }
+    });
 });
 </script>
 </body>

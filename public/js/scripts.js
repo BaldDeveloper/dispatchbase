@@ -74,3 +74,20 @@
         targetAnchor.classList.add('active');
     });
 });
+
+// Common email pattern (RFC 5322 simplified)
+const EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+// Validate all email fields with class 'email-pattern' in a form
+function validateEmailFields(form) {
+    let valid = true;
+    const emailFields = form.querySelectorAll('.email-pattern');
+    emailFields.forEach(function(field) {
+        field.classList.remove('field-error');
+        if (field.value && !EMAIL_PATTERN.test(field.value)) {
+            field.classList.add('field-error');
+            valid = false;
+        }
+    });
+    return valid;
+}

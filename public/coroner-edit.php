@@ -1,6 +1,8 @@
 <?php
 require_once 'database/CoronerData.php';
 require_once 'database/Database.php';
+require_once __DIR__ . '/../includes/states.php';
+$states = include __DIR__ . '/../includes/states.php';
 
 $db = new Database();
 $coronerRepo = new CoronerData($db);
@@ -24,7 +26,18 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_coroner']) && $mode === 'edit' && $id
+) {
+    try {
+        $coronerRepo->delete($id);
+        $success = 'deleted';
+        // Clear form values so form does not show after deletion
+        $coronerName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
+    } catch (Exception $e) {
+        $error = 'Error deleting coroner: ' . htmlspecialchars($e->getMessage());
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $coronerName = trim($_POST['cooroner_name'] ?? '');
     $phoneNumber = trim($_POST['phone_number'] ?? '');
     $emailAddress = trim($_POST['email_address'] ?? '');
@@ -75,14 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = true;
             } catch (Exception $e) {
                 $error = 'Error updating coroner: ' . htmlspecialchars($e->getMessage());
-            }
-        } elseif ($mode === 'delete' && $id) {
-            try {
-                $coronerRepo->delete($id);
-                header('Location: coroner-list.php?success=deleted');
-                exit;
-            } catch (Exception $e) {
-                $error = 'Error deleting coroner: ' . htmlspecialchars($e->getMessage());
             }
         }
     } else {
@@ -135,7 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="card mb-4 w-100">
                         <div class="card-header">Add Coroner</div>
                         <div class="card-body">
-                            <?php if ($success): ?>
+                            <?php if ($success === 'deleted'): ?>
+                                <div class="alert alert-success" role="alert">
+                                    Coroner deleted successfully!
+                                </div>
+                            <?php elseif ($success): ?>
                                 <div class="alert alert-success" role="alert">
                                     Coroner saved successfully!
                                 </div>
@@ -152,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
-                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>">
+                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="\(\d{3}\)\d{3}-\d{4}" autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="row form-section">
@@ -172,7 +181,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                     <div class="col-md-4">
                                         <label for="state" class="form-label required">State</label>
-                                        <input type="text" class="form-control" id="state" name="state" value="<?= htmlspecialchars($state ?? '') ?>" required>
+                                        <select class="form-select" id="state" name="state" required>
+                                            <option value="">Select State</option>
+                                            <?php foreach (
+                                                $states as $abbr => $name): ?>
+                                                <option value="<?= htmlspecialchars($abbr) ?>" <?= (isset($state) && $state === $abbr) ? 'selected' : '' ?>><?= htmlspecialchars($abbr) ?> - <?= htmlspecialchars($name) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="zip" class="form-label">Zip</label>
@@ -182,13 +197,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="email_address" class="form-label required">Email Address</label>
-                                        <input type="email" class="form-control" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required>
+                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">
                                     <button type="submit" class="btn btn-primary"><?= $mode === 'edit' ? 'Update' : 'Add' ?> Coroner</button>
                                     <?php if ($mode === 'edit'): ?>
-                                        <a href="coroner-edit.php?mode=delete&id=<?= htmlspecialchars($id) ?>" class="btn btn-secondary">Delete Coroner</a>
+                                        <button type="submit" name="delete_coroner" value="1" class="btn btn-secondary" onclick="return confirm('Are you sure you want to delete this coroner?');">Delete Coroner</button>
                                     <?php endif; ?>
                                 </div>
                             </form>
@@ -202,6 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="js/scripts.js"></script>
+<script src="js/phone-format.js"></script>
 <script>
     // Dynamically load topnav.html into #topnav
     fetch('topnav.html')
@@ -223,6 +239,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .then(html => {
             document.getElementById('footer').outerHTML = html;
         });
+
+    // Format phone number on page load if value exists
+    document.addEventListener('DOMContentLoaded', function() {
+        var phoneInput = document.getElementById('phone_number');
+        if (phoneInput && phoneInput.value) {
+            phoneInput.value = formatPhoneNumber(phoneInput.value);
+        }
+    });
+
+    // Form validation
+    var form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Only validate for add/update, not delete
+        var submitter = e.submitter || document.activeElement;
+        if (submitter && submitter.name === 'delete_coroner') return;
+        if (!validateRequiredFields(form) || !validateEmailFields(form)) {
+            e.preventDefault();
+        }
+    });
+
+    function validateRequiredFields(form) {
+        let firstInvalid = null;
+        form.querySelectorAll('.field-error').forEach(function(field) {
+            field.classList.remove('field-error');
+        });
+        form.querySelectorAll('[required]').forEach(function(field) {
+            if (!field.value || field.value.trim() === '') {
+                field.classList.add('field-error');
+                if (!firstInvalid) firstInvalid = field;
+            }
+        });
+        // Special case: phone number pattern validation (if present)
+        var phoneInput = form.querySelector('#phone_number');
+        if (phoneInput && phoneInput.value) {
+            var phonePattern = /^\(\d{3}\)\d{3}-\d{4}$/;
+            if (!phonePattern.test(phoneInput.value)) {
+                phoneInput.classList.add('field-error');
+                if (!firstInvalid) firstInvalid = phoneInput;
+            }
+        }
+        if (firstInvalid) {
+            firstInvalid.focus();
+            return false;
+        }
+        return true;
+    }
+
+    function validateEmailFields(form) {
+        let firstInvalid = null;
+        form.querySelectorAll('.email-error').forEach(function(field) {
+            field.classList.remove('email-error');
+        });
+        form.querySelectorAll('.email-pattern').forEach(function(field) {
+            if (!field.value || field.value.trim() === '') {
+                field.classList.add('email-error');
+                if (!firstInvalid) firstInvalid = field;
+            } else {
+                // Use the same pattern as the HTML attribute
+                var pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!pattern.test(field.value)) {
+                    field.classList.add('email-error');
+                    if (!firstInvalid) firstInvalid = field;
+                }
+            }
+        });
+        if (firstInvalid) {
+            firstInvalid.focus();
+            return false;
+        }
+        return true;
+    }
 </script>
 </body>
 </html>
