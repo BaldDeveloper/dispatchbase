@@ -3,7 +3,22 @@
     * Copyright 2013-2023 Start Bootstrap
     * Licensed under SEE_LICENSE (https://github.com/StartBootstrap/sb-admin-pro/blob/master/LICENSE)
     */
-    window.addEventListener('DOMContentLoaded', event => {
+    function initSidebarToggle() {
+    const sidebarToggle = document.body.querySelector('#sidebarToggle');
+    if (sidebarToggle) {
+        console.log('Sidebar toggle handler attached');
+        sidebarToggle.onclick = function(event) {
+            event.preventDefault();
+            document.body.classList.toggle('sidenav-toggled');
+            localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
+            console.log('Sidebar toggled. sidenav-toggled:', document.body.classList.contains('sidenav-toggled'));
+        };
+    } else {
+        console.log('Sidebar toggle button NOT found');
+    }
+}
+
+window.addEventListener('DOMContentLoaded', event => {
     // Activate feather
     feather.replace();
 
@@ -19,19 +34,8 @@
         return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    // Toggle the side navigation
-    const sidebarToggle = document.body.querySelector('#sidebarToggle');
-    if (sidebarToggle) {
-        // Uncomment Below to persist sidebar toggle between refreshes
-        // if (localStorage.getItem('sb|sidebar-toggle') === 'true') {
-        //     document.body.classList.toggle('sidenav-toggled');
-        // }
-        sidebarToggle.addEventListener('click', event => {
-            event.preventDefault();
-            document.body.classList.toggle('sidenav-toggled');
-            localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
-        });
-    }
+    // Initialize sidebar toggle (for static pages)
+    initSidebarToggle();
 
     // Close side navigation when width < LG
     const sidenavContent = document.body.querySelector('#layoutSidenav_content');

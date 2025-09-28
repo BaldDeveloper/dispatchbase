@@ -25,9 +25,7 @@ $coroners = $coronerRepo->getAll() ?? [];
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <div id="layoutSidenav_nav">
-        <div id="sidebar"></div>
-    </div>
+    <nav id="layoutSidenav_nav"></nav>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -67,42 +65,30 @@ $coroners = $coronerRepo->getAll() ?? [];
                                     <table class="table table-bordered table-hover mb-0">
                                         <thead class="table-light">
                                         <tr>
-                                            <th>Edit</th>
+                                            <th>Coroner #</th>
                                             <th>Name</th>
-                                            <th>Phone Number</th>
-                                            <th>Email Address</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>County</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <?php foreach ($coroners as $coroner): ?>
+                                        <?php foreach ($coroners as $c): ?>
                                             <tr>
-                                                <td><a href="coroner-edit.php?mode=edit&id=<?= urlencode($coroner['coroner_number']) ?>">Edit</a></td>
-                                                <td><?= htmlspecialchars($coroner['cooroner_name'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($coroner['phone_number'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($coroner['email_address'] ?? '') ?></td>
+                                                <td><a href="coroner-edit.php?mode=edit&id=<?= htmlspecialchars($c['coroner_number'] ?? '') ?>"><?= htmlspecialchars($c['coroner_number'] ?? '') ?></a></td>
+                                                <td><?= htmlspecialchars($c['coroner_name'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($c['phone_number'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($c['email_address'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($c['county'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($coroners)): ?>
                                             <tr>
-                                                <td colspan="4" class="text-danger">No coroners found.</td>
+                                                <td colspan="5" class="text-danger">No coroners found.</td>
                                             </tr>
                                         <?php endif; ?>
                                         </tbody>
                                     </table>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-sm-12 col-md-5">
-                                        <div class="dataTables_info">Showing 1 to <?= count($coroners) ?> of <?= count($coroners) ?> entries</div>
-                                    </div>
-                                    <div class="col-sm-12 col-md-7">
-                                        <nav aria-label="Table pagination">
-                                            <ul class="pagination justify-content-end">
-                                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                                <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-                                            </ul>
-                                        </nav>
-                                    </div>
                                 </div>
                             </div> <!-- /.dataTables_wrapper -->
                         </div> <!-- /.card-body -->
@@ -111,29 +97,40 @@ $coroners = $coronerRepo->getAll() ?? [];
             </div> <!-- /.container-xl -->
         </main>
         <div id="footer"></div>
-    </div> <!-- /#layoutSidenav_content -->
-</div> <!-- /#layoutSidenav -->
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="js/scripts.js"></script>
 <script>
+    // Dynamically load topnav.html into #topnav
     fetch('topnav.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('topnav').outerHTML = html;
-            feather.replace();
+            var topnav = document.getElementById('topnav');
+            if (topnav) {
+                topnav.innerHTML = html;
+                feather.replace();
+                if (typeof initSidebarToggle === 'function') initSidebarToggle();
+            }
         });
-
+    // Dynamically load sidebar.html into #layoutSidenav_nav
     fetch('sidebar.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('sidebar').outerHTML = html;
-            feather.replace();
+            var sidenav = document.getElementById('layoutSidenav_nav');
+            if (sidenav) {
+                sidenav.innerHTML = html;
+                feather.replace();
+            }
         });
-
+    // Dynamically load footer.html into #footer
     fetch('footer.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('footer').outerHTML = html;
+            var footer = document.getElementById('footer');
+            if (footer) {
+                footer.innerHTML = html;
+            }
         });
 </script>
 </body>

@@ -27,9 +27,7 @@ $customers = $customerRepo->getAll() ?? [];
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <div id="layoutSidenav_nav">
-        <div id="sidebar"></div>
-    </div>
+    <nav id="layoutSidenav_nav"></nav>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -130,21 +128,31 @@ $customers = $customerRepo->getAll() ?? [];
     fetch('topnav.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('topnav').outerHTML = html;
-            feather.replace();
+            var topnav = document.getElementById('topnav');
+            if (topnav) {
+                topnav.innerHTML = html;
+                feather.replace();
+                if (typeof initSidebarToggle === 'function') initSidebarToggle();
+            }
         });
-    // Dynamically load sidebar.html into #sidebar
+    // Dynamically load sidebar.html into #layoutSidenav_nav
     fetch('sidebar.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('sidebar').outerHTML = html;
-            feather.replace();
+            var sidenav = document.getElementById('layoutSidenav_nav');
+            if (sidenav) {
+                sidenav.innerHTML = html;
+                feather.replace();
+            }
         });
     // Dynamically load footer.html into #footer
     fetch('footer.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('footer').outerHTML = html;
+            var footer = document.getElementById('footer');
+            if (footer) {
+                footer.innerHTML = html;
+            }
         });
 </script>
 </body>

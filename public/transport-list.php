@@ -23,93 +23,110 @@ $transports = $transportRepo->getAll() ?? [];
   <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="nav-fixed">
-  <div id="topnav"></div>
-  <div id="layoutSidenav">
-    <div id="layoutSidenav_nav">
-      <div id="sidebar"></div>
-    </div>
+<div id="topnav"></div>
+<div id="layoutSidenav">
+    <?php include 'sidebar.html'; ?>
     <div id="layoutSidenav_content">
-      <main>
-        <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
-          <div class="container-xl px-4">
-            <div class="page-header-content pt-4">
-              <div class="row align-items-center justify-content-between">
-                <div class="col-auto">
+        <main>
+            <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
+                <div class="container-xl px-4">
+                    <div class="page-header-content pt-4">
+                        <div class="row align-items-center justify-content-between">
+                        </div>
+                    </div>
                 </div>
-              </div>
+            </header>
+            <div class="container-xl px-4 mt-n-custom-6">
+                <!-- Main content  -->
+                <div id="default">
+                    <div class="card mb-4 w-100">
+                        <div class="card-header">Transport Entries</div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Firm ID</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Deceased First Name</th>
+                                        <th>Deceased Last Name</th>
+                                        <th>Edit</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($transports as $t): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($t['form_date'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($t['firm_id'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($t['origin_location'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($t['destination_location'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($t['decedent_first_name'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($t['decedent_last_name'] ?? '') ?></td>
+                                            <td><a href="transport-edit.php?mode=edit&id=<?= urlencode($t['transport_id']) ?>">Edit</a></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <?php if (empty($transports)): ?>
+                                        <tr>
+                                            <td colspan="7" class="text-danger">No transport logs found.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-between align-items-center">
+                                <div>Showing 1 to <?= count($transports) ?> of <?= count($transports) ?> entries</div>
+                                <nav>
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </header>
-        <div class="container-xl px-4 mt-n-custom-6">
-          <div id="default">
-            <div class="card mb-4 w-100">
-              <div class="card-header">Transport Entries</div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table class="table table-bordered table-hover mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Date</th>
-                        <th>Firm ID</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Deceased First Name</th>
-                        <th>Deceased Last Name</th>
-                        <th>Edit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <?php foreach ($transports as $t): ?>
-                        <tr>
-                          <td><?= htmlspecialchars($t['form_date'] ?? '') ?></td>
-                          <td><?= htmlspecialchars($t['firm_id'] ?? '') ?></td>
-                          <td><?= htmlspecialchars($t['origin_location'] ?? '') ?></td>
-                          <td><?= htmlspecialchars($t['destination_location'] ?? '') ?></td>
-                          <td><?= htmlspecialchars($t['decedent_first_name'] ?? '') ?></td>
-                          <td><?= htmlspecialchars($t['decedent_last_name'] ?? '') ?></td>
-                          <td><a href="transport-edit.php?mode=edit&id=<?= urlencode($t['transport_id']) ?>">Edit</a></td>
-                        </tr>
-                      <?php endforeach; ?>
-                      <?php if (empty($transports)): ?>
-                        <tr>
-                          <td colspan="7" class="text-danger">No transport logs found.</td>
-                        </tr>
-                      <?php endif; ?>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="mt-3 d-flex justify-content-between align-items-center">
-                  <div>Showing 1 to <?= count($transports) ?> of <?= count($transports) ?> entries</div>
-                  <nav>
-                    <ul class="pagination mb-0">
-                      <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                      <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                      <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-      <div id="footer"></div>
+        </main>
+        <div id="footer"></div>
     </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-  <script src="js/scripts.js"></script>
-  <script>
-    fetch('topnav.html').then(res => res.text()).then(html => {
-      document.getElementById('topnav').outerHTML = html;
-      feather.replace();
-    });
-    fetch('sidebar.html').then(res => res.text()).then(html => {
-      document.getElementById('sidebar').outerHTML = html;
-      feather.replace();
-    });
-    fetch('footer.html').then(res => res.text()).then(html => {
-      document.getElementById('footer').outerHTML = html;
-    });
-  </script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="js/scripts.js"></script>
+<script src="js/phone-format.js"></script>
+<script>
+    // Dynamically load topnav.html into #topnav
+    fetch('topnav.html')
+        .then(response => response.text())
+        .then(html => {
+            var topnav = document.getElementById('topnav');
+            if (topnav) {
+                topnav.innerHTML = html;
+                feather.replace();
+                if (typeof initSidebarToggle === 'function') initSidebarToggle();
+            }
+        });
+    // Dynamically load sidebar.html into #layoutSidenav_nav
+    fetch('sidebar.html')
+        .then(response => response.text())
+        .then(html => {
+            var sidenav = document.getElementById('layoutSidenav_nav');
+            if (sidenav) {
+                sidenav.innerHTML = html;
+                feather.replace();
+            }
+        });
+    // Dynamically load footer.html into #footer
+    fetch('footer.html')
+        .then(response => response.text())
+        .then(html => {
+            var footer = document.getElementById('footer');
+            if (footer) {
+                footer.innerHTML = html;
+            }
+        });
+</script>
 </body>
 </html>

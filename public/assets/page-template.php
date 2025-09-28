@@ -1,10 +1,18 @@
 <?php
-require_once 'database/PouchData.php';
+// page-template.php (empty main content, navigation only)
+require_once 'database/CustomerData.php';
 require_once 'database/Database.php';
+require_once __DIR__ . '/../includes/csrf.php';
+require_once __DIR__ . '/../includes/states.php';
 
 $db = new Database();
-$pouchRepo = new PouchData($db);
-$pouches = $pouchRepo->getAll() ?? [];
+$customerRepo = new CustomerData($db);
+$states = include __DIR__ . '/../includes/states.php';
+
+$mode = $_GET['mode'] ?? 'add';
+$id = $_GET['id'] ?? null;
+$success = false;
+$error = '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,12 +22,22 @@ $pouches = $pouchRepo->getAll() ?? [];
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Pouch Types - DispatchBase</title>
+    <title>Page Template - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
+    <link href="css/field-error.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
+    <style>
+        .required::after {
+            content: " *";
+            color: red;
+        }
+        .form-section {
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body class="nav-fixed">
 <div id="topnav"></div>
@@ -36,37 +54,7 @@ $pouches = $pouchRepo->getAll() ?? [];
                 </div>
             </header>
             <div class="container-xl px-4 mt-n-custom-6">
-                <!-- Main content -->
-                <div id="default">
-                    <div class="card mb-4 w-100">
-                        <div class="card-header">Pouch Types</div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover mb-0">
-                                    <thead class="table-light">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Pouch Type</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php foreach ($pouches as $pouch): ?>
-                                        <tr>
-                                            <td><a href="pouch-edit.php?mode=edit&id=<?= htmlspecialchars($pouch['pouch_id'] ?? '') ?>"><?= htmlspecialchars($pouch['pouch_id'] ?? '') ?></a></td>
-                                            <td><?= htmlspecialchars($pouch['pouch_type'] ?? '') ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($pouches)): ?>
-                                        <tr>
-                                            <td colspan="2" class="text-danger">No pouch types found.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Main content intentionally left empty -->
             </div>
         </main>
         <div id="footer"></div>
@@ -109,3 +97,4 @@ $pouches = $pouchRepo->getAll() ?? [];
 </script>
 </body>
 </html>
+

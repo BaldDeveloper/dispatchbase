@@ -28,7 +28,7 @@ class CoronerData {
         ?string $zip
     ): int {
         return $this->db->insert(
-            "INSERT INTO coroner (cooroner_name, phone_number, email_address, address_1, address_2, city, state, zip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO coroner (coroner_name, phone_number, email_address, address_1, address_2, city, state, zip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [$coronerName, $phoneNumber, $emailAddress, $address1, $address2, $city, $state, $zip]
         );
     }
@@ -45,7 +45,7 @@ class CoronerData {
         ?string $zip
     ): int {
         return $this->db->execute(
-            "UPDATE coroner SET cooroner_name = ?, phone_number = ?, email_address = ?, address_1 = ?, address_2 = ?, city = ?, state = ?, zip = ? WHERE coroner_number = ?",
+            "UPDATE coroner SET coroner_name = ?, phone_number = ?, email_address = ?, address_1 = ?, address_2 = ?, city = ?, state = ?, zip = ? WHERE coroner_number = ?",
             [$coronerName, $phoneNumber, $emailAddress, $address1, $address2, $city, $state, $zip, $coronerNumber]
         );
     }

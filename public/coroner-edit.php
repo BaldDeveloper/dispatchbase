@@ -15,7 +15,7 @@ $error = '';
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $coroner = $coronerRepo->findByCoronerNumber($id);
     if ($coroner) {
-        $coronerName = $coroner['cooroner_name'] ?? '';
+        $coronerName = $coroner['coroner_name'] ?? '';
         $phoneNumber = $coroner['phone_number'] ?? '';
         $emailAddress = $coroner['email_address'] ?? '';
         $address1 = $coroner['address_1'] ?? '';
@@ -38,7 +38,7 @@ if (
         $error = 'Error deleting coroner: ' . htmlspecialchars($e->getMessage());
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $coronerName = trim($_POST['cooroner_name'] ?? '');
+    $coronerName = trim($_POST['coroner_name'] ?? '');
     $phoneNumber = trim($_POST['phone_number'] ?? '');
     $emailAddress = trim($_POST['email_address'] ?? '');
     $address1 = trim($_POST['address_1'] ?? '');
@@ -122,9 +122,7 @@ if (
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <div id="layoutSidenav_nav">
-        <div id="sidebar"></div>
-    </div>
+    <nav id="layoutSidenav_nav"></nav>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -156,8 +154,8 @@ if (
                             <form method="POST">
                                 <div class="row form-section">
                                     <div class="col-md-6">
-                                        <label for="cooroner_name" class="form-label required">Coroner Name</label>
-                                        <input type="text" class="form-control" id="cooroner_name" name="cooroner_name" value="<?= htmlspecialchars($coronerName ?? '') ?>" required>
+                                        <label for="coroner_name" class="form-label required">Coroner Name</label>
+                                        <input type="text" class="form-control" id="coroner_name" name="coroner_name" value="<?= htmlspecialchars($coronerName ?? '') ?>" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
@@ -223,21 +221,22 @@ if (
     fetch('topnav.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('topnav').outerHTML = html;
+            document.getElementById('topnav').innerHTML = html;
             feather.replace();
+            if (typeof initSidebarToggle === 'function') initSidebarToggle();
         });
-    // Dynamically load sidebar.html into #sidebar
+    // Dynamically load sidebar.html into #layoutSidenav_nav
     fetch('sidebar.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('sidebar').outerHTML = html;
+            document.getElementById('layoutSidenav_nav').innerHTML = html;
             feather.replace();
         });
     // Dynamically load footer.html into #footer
     fetch('footer.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('footer').outerHTML = html;
+            document.getElementById('footer').innerHTML = html;
         });
 
     // Format phone number on page load if value exists
