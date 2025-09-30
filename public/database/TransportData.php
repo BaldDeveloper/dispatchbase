@@ -18,12 +18,14 @@ class TransportData {
         string $coronerName,
         string $pouchType,
         string $transitPermitNumber,
-        string $tagNumber
+        string $tagNumber,
+        ?int $primaryTransporter = null,
+        ?int $assistantTransporter = null
     ): int {
         $sql = "INSERT INTO transport (
-            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number
+            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, primary_transporter, assistant_transporter
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )";
         $params = [
             $firmId,
@@ -34,7 +36,9 @@ class TransportData {
             $coronerName,
             $pouchType,
             $transitPermitNumber,
-            $tagNumber
+            $tagNumber,
+            $primaryTransporter,
+            $assistantTransporter
         ];
         // Clear the error log before each run
         @file_put_contents(__DIR__ . '/../../database/db_error.log', '');
@@ -72,7 +76,9 @@ class TransportData {
         string $coronerName,
         string $pouchType,
         string $transitPermitNumber,
-        string $tagNumber
+        string $tagNumber,
+        ?int $primaryTransporter = null,
+        ?int $assistantTransporter = null
     ): int {
         $sql = "UPDATE transport SET
             firm_id = ?,
@@ -83,7 +89,9 @@ class TransportData {
             coroner_name = ?,
             pouch_type = ?,
             transit_permit_number = ?,
-            tag_number = ?
+            tag_number = ?,
+            primary_transporter = ?,
+            assistant_transporter = ?
             WHERE transport_id = ?";
         $params = [
             $firmId,
@@ -95,6 +103,8 @@ class TransportData {
             $pouchType,
             $transitPermitNumber,
             $tagNumber,
+            $primaryTransporter,
+            $assistantTransporter,
             $transportId
         ];
         return $this->db->execute($sql, $params);

@@ -7,6 +7,7 @@ require_once 'database/CustomerData.php';
 require_once 'database/LocationsData.php';
 require_once 'database/CoronerData.php';
 require_once 'database/PouchData.php';
+require_once 'database/UserData.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);
@@ -14,6 +15,7 @@ $customerRepo = new CustomerData($db);
 $locationsData = new LocationsData($db);
 $coronerData = new CoronerData($db);
 $pouchData = new PouchData($db);
+$userData = new UserData($db);
 
 $success = false;
 $error = '';
@@ -36,6 +38,8 @@ $decedentEthnicity = '';
 $decedentGender = '';
 $coronerName = '';
 $pouchType = '';
+$primaryTransporter = '';
+$assistantTransporter = '';
 
 // Transit section data preparation
 $allLocations = $locationsData->getAllLocations();
@@ -47,6 +51,7 @@ $destinationLocations = array_filter($allLocations, function($loc) {
 });
 $coroners = $coronerData->getAll();
 $pouchTypes = $pouchData->getAll();
+$drivers = $userData->getDrivers();
 
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $transport = $transportRepo->findById($id);
@@ -61,6 +66,8 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $tagNumber = $transport['tag_number'] ?? '';
         $pouchType = $transport['pouch_type'] ?? '';
         $transitPermitNumber = $transport['transit_permit_number'] ?? '';
+        $primaryTransporter = $transport['primary_transporter'] ?? '';
+        $assistantTransporter = $transport['assistant_transporter'] ?? '';
         $decedentRepo = new DecedentData($db);
         $decedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$id]);
         if (!empty($decedent[0])) {
@@ -106,6 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
     $pouchType = $_POST['pouch_type'] ?? '';
     $transitPermitNumber = $_POST['transit_permit_number'] ?? '';
     $tagNumber = $_POST['tag_number'] ?? '';
+    $primaryTransporter = $_POST['primary_transporter'] ?? $primaryTransporter;
+    $assistantTransporter = $_POST['assistant_transporter'] ?? $assistantTransporter;
     // Lookup coroner name from ID
     $coronerName = '';
     foreach ($coroners as $c) {
@@ -130,7 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $coronerName,
                     $pouchType,
                     $transitPermitNumber,
-                    $tagNumber
+                    $tagNumber,
+                    $primaryTransporter ? (int)$primaryTransporter : null,
+                    $assistantTransporter ? (int)$assistantTransporter : null
                 );
                 // Update decedent table with matching transport_id
                 $decedentRepo->updateByTransportId(
@@ -150,7 +161,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $coronerName,
                     $pouchType,
                     $transitPermitNumber,
-                    $tagNumber
+                    $tagNumber,
+                    $primaryTransporter ? (int)$primaryTransporter : null,
+                    $assistantTransporter ? (int)$assistantTransporter : null
                 );
                 // Check if decedent record exists for this transport_id
                 $existingDecedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$transport_id]);

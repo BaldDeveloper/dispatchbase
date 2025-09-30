@@ -67,9 +67,67 @@
                 </select>
             </td>
         </tr>
-        <!-- Next row will be added as per user instruction -->
+        <tr>
+            <td style="padding:10px;">
+                <label for="primary_transporter">Primary Transporter</label><br>
+                <select id="primary_transporter" name="primary_transporter" class="form-control" style="width:95%;">
+                    <?php foreach ($drivers as $driver): ?>
+                        <option value="<?= htmlspecialchars($driver['id']) ?>" <?= (isset($primaryTransporter) && $primaryTransporter == $driver['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($driver['username']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </td>
+            <td style="padding:10px;">
+                <label for="assistant_transporter">Assistant Transporter</label><br>
+                <select id="assistant_transporter" name="assistant_transporter" class="form-control" style="width:95%;">
+                    <?php foreach ($drivers as $driver): ?>
+                        <option value="<?= htmlspecialchars($driver['id']) ?>" <?= (isset($assistantTransporter) && $assistantTransporter == $driver['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($driver['username']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </td>
+            <td></td>
+        </tr>
     </table>
+    <div id="transporter-error" style="color:red; display:none; margin-top:10px;"></div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Find the parent form
+    var transitSection = document.getElementById('transit-section');
+    var form = transitSection.closest('form');
+    if (!form) return;
+    var primary = document.getElementById('primary_transporter');
+    var assistant = document.getElementById('assistant_transporter');
+    var errorDiv = document.getElementById('transporter-error');
+
+    function validateTransporters(e) {
+        if (primary.value && assistant.value && primary.value === assistant.value) {
+            errorDiv.textContent = 'Primary Transporter and Assistant Transporter cannot be the same.';
+            errorDiv.style.display = 'block';
+            primary.classList.add('is-invalid');
+            assistant.classList.add('is-invalid');
+            if (e) e.preventDefault();
+            return false;
+        } else {
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            primary.classList.remove('is-invalid');
+            assistant.classList.remove('is-invalid');
+            return true;
+        }
+    }
+
+    // Validate on form submit
+    form.addEventListener('submit', validateTransporters);
+    // Validate on change
+    primary.addEventListener('change', validateTransporters);
+    assistant.addEventListener('change', validateTransporters);
+});
+</script>
 
 
 </html>
