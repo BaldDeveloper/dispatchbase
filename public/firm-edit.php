@@ -10,7 +10,7 @@
             </div>
         </div>
     </div>
-    <table class="table table-borderless">
+    <table style="width:100%;">
         <tr>
             <td>
                 <div class="mb-3">

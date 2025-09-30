@@ -41,6 +41,12 @@ $pouchType = '';
 $primaryTransporter = '';
 $assistantTransporter = '';
 
+// Add default values for new time fields
+$callTime = '';
+$arrivalTime = '';
+$departureTime = '';
+$deliveryTime = '';
+
 // Transit section data preparation
 $allLocations = $locationsData->getAllLocations();
 $originLocations = array_filter($allLocations, function($loc) {
@@ -68,6 +74,10 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $transitPermitNumber = $transport['transit_permit_number'] ?? '';
         $primaryTransporter = $transport['primary_transporter'] ?? '';
         $assistantTransporter = $transport['assistant_transporter'] ?? '';
+        $callTime = $transport['call_time'] ?? '';
+        $arrivalTime = $transport['arrival_time'] ?? '';
+        $departureTime = $transport['departure_time'] ?? '';
+        $deliveryTime = $transport['delivery_time'] ?? '';
         $decedentRepo = new DecedentData($db);
         $decedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$id]);
         if (!empty($decedent[0])) {
@@ -115,6 +125,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
     $tagNumber = $_POST['tag_number'] ?? '';
     $primaryTransporter = $_POST['primary_transporter'] ?? $primaryTransporter;
     $assistantTransporter = $_POST['assistant_transporter'] ?? $assistantTransporter;
+    $callTime = $_POST['call_time'] ?? '';
+    $arrivalTime = $_POST['arrival_time'] ?? '';
+    $departureTime = $_POST['departure_time'] ?? '';
+    $deliveryTime = $_POST['delivery_time'] ?? '';
     // Lookup coroner name from ID
     $coronerName = '';
     foreach ($coroners as $c) {
@@ -125,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
     }
     $decedentRepo = new DecedentData($db);
     $transport_id = $id ? (int)$id : null;
-    if ($firmId && $firmDate && $firmAccountType) {
+    if ($firmId && $firmDate && $firmAccountType && $callTime && $arrivalTime && $departureTime && $deliveryTime) {
         try {
             if ($mode === 'edit' && $transport_id) {
                 // Update transport record
@@ -140,6 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $pouchType,
                     $transitPermitNumber,
                     $tagNumber,
+                    $callTime,
+                    $arrivalTime,
+                    $departureTime,
+                    $deliveryTime,
                     $primaryTransporter ? (int)$primaryTransporter : null,
                     $assistantTransporter ? (int)$assistantTransporter : null
                 );
@@ -162,6 +180,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $pouchType,
                     $transitPermitNumber,
                     $tagNumber,
+                    $callTime,
+                    $arrivalTime,
+                    $departureTime,
+                    $deliveryTime,
                     $primaryTransporter ? (int)$primaryTransporter : null,
                     $assistantTransporter ? (int)$assistantTransporter : null
                 );
@@ -257,11 +279,25 @@ $customers = $customerRepo->getAll();
                             <?php if ($success !== 'deleted'): ?>
                             <form method="POST">
                                 <?php include('firm-edit.php'); ?>
-                                <hr />
+
                                 <?php include('decedent-edit.php'); ?>
-                                <hr />
+
                                 <?php include('transit-edit.php'); ?>
-                                <hr />
+
+                                <?php include('times-edit.php'); ?>
+
+                                <div id="charges-section">
+                                    <div class="container-xl px-1">
+                                        <div class="page-header-content pt-4">
+                                            <div class="row align-items-center justify-content-between">
+                                                <h4>Charges Information</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- add includes here when ready -->
+
+
+                                </div>
                                 <!-- Hidden fields for all other transport columns with default values -->
                                 <input type="hidden" name="decedent_first_name" value="<?= htmlspecialchars($decedentFirstName) ?>" />
                                 <input type="hidden" name="decedent_middle_name" value="<?= htmlspecialchars($decedentMiddleName) ?>" />

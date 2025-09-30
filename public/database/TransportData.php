@@ -19,13 +19,17 @@ class TransportData {
         string $pouchType,
         string $transitPermitNumber,
         string $tagNumber,
+        string $callTime,
+        string $arrivalTime,
+        string $departureTime,
+        string $deliveryTime,
         ?int $primaryTransporter = null,
         ?int $assistantTransporter = null
     ): int {
         $sql = "INSERT INTO transport (
-            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, primary_transporter, assistant_transporter
+            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, call_time, arrival_time, departure_time, delivery_time, primary_transporter, assistant_transporter
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )";
         $params = [
             $firmId,
@@ -37,6 +41,10 @@ class TransportData {
             $pouchType,
             $transitPermitNumber,
             $tagNumber,
+            $callTime,
+            $arrivalTime,
+            $departureTime,
+            $deliveryTime,
             $primaryTransporter,
             $assistantTransporter
         ];
@@ -77,6 +85,10 @@ class TransportData {
         string $pouchType,
         string $transitPermitNumber,
         string $tagNumber,
+        string $callTime,
+        string $arrivalTime,
+        string $departureTime,
+        string $deliveryTime,
         ?int $primaryTransporter = null,
         ?int $assistantTransporter = null
     ): int {
@@ -90,6 +102,10 @@ class TransportData {
             pouch_type = ?,
             transit_permit_number = ?,
             tag_number = ?,
+            call_time = ?,
+            arrival_time = ?,
+            departure_time = ?,
+            delivery_time = ?,
             primary_transporter = ?,
             assistant_transporter = ?
             WHERE transport_id = ?";
@@ -103,6 +119,10 @@ class TransportData {
             $pouchType,
             $transitPermitNumber,
             $tagNumber,
+            $callTime,
+            $arrivalTime,
+            $departureTime,
+            $deliveryTime,
             $primaryTransporter,
             $assistantTransporter,
             $transportId
