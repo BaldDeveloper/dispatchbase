@@ -1,6 +1,8 @@
 <?php
 // decedent-edit.php
 // This page will be used for adding/editing decedent records.
+$ethnicities = include __DIR__ . '/../includes/ethnicities.php';
+$genders = include __DIR__ . '/../includes/genders.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,6 +25,28 @@
                 <label for="last_name">Last Name<span style="color:red;">*</span></label><br>
                 <input type="text" id="last_name" name="last_name" class="form-control" required style="width:95%;"
                        value="<?= htmlspecialchars($decedentLastName ?? '') ?>">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:10px;">
+                <label for="ethnicity">Ethnicity</label><br>
+                <select id="ethnicity" name="ethnicity" class="form-control" style="width:95%;">
+                    <?php foreach ($ethnicities as $ethnicity): ?>
+                        <option value="<?= htmlspecialchars($ethnicity) ?>" <?= (isset($decedentEthnicity) && $decedentEthnicity === $ethnicity) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($ethnicity) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </td>
+            <td style="padding:10px;">
+                <label for="gender">Gender</label><br>
+                <select id="gender" name="gender" class="form-control" style="width:95%;">
+                    <?php foreach ($genders as $gender): ?>
+                        <option value="<?= htmlspecialchars($gender) ?>" <?= (isset($decedentGender) && $decedentGender === $gender) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($gender) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </td>
         </tr>
     </table>

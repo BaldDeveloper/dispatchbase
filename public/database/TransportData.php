@@ -12,17 +12,29 @@ class TransportData {
     public function create(
         int $firmId,
         string $firmDate,
-        string $firmAccountType
+        string $firmAccountType,
+        string $originLocation,
+        string $destinationLocation,
+        string $coronerName,
+        string $pouchType,
+        string $transitPermitNumber,
+        string $tagNumber
     ): int {
         $sql = "INSERT INTO transport (
-            firm_id, firm_date, firm_account_type
+            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number
         ) VALUES (
-            ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
         )";
         $params = [
             $firmId,
             $firmDate,
-            $firmAccountType
+            $firmAccountType,
+            $originLocation,
+            $destinationLocation,
+            $coronerName,
+            $pouchType,
+            $transitPermitNumber,
+            $tagNumber
         ];
         // Clear the error log before each run
         @file_put_contents(__DIR__ . '/../../database/db_error.log', '');
@@ -49,14 +61,43 @@ class TransportData {
         return $result[0] ?? null;
     }
 
+    // Update an existing record in transport
     public function update(
-        int $transport_id,
+        int $transportId,
         int $firmId,
         string $firmDate,
-        string $firmAccountType
+        string $firmAccountType,
+        string $originLocation,
+        string $destinationLocation,
+        string $coronerName,
+        string $pouchType,
+        string $transitPermitNumber,
+        string $tagNumber
     ): int {
-        $sql = "UPDATE transport SET firm_id = ?, firm_date = ?, firm_account_type = ? WHERE transport_id = ?";
-        return $this->db->execute($sql, [$firmId, $firmDate, $firmAccountType, $transport_id]);
+        $sql = "UPDATE transport SET
+            firm_id = ?,
+            firm_date = ?,
+            firm_account_type = ?,
+            origin_location = ?,
+            destination_location = ?,
+            coroner_name = ?,
+            pouch_type = ?,
+            transit_permit_number = ?,
+            tag_number = ?
+            WHERE transport_id = ?";
+        $params = [
+            $firmId,
+            $firmDate,
+            $firmAccountType,
+            $originLocation,
+            $destinationLocation,
+            $coronerName,
+            $pouchType,
+            $transitPermitNumber,
+            $tagNumber,
+            $transportId
+        ];
+        return $this->db->execute($sql, $params);
     }
 
     public function delete(int $transport_id): int {

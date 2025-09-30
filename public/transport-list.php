@@ -58,7 +58,7 @@ $transports = $transportRepo->getAll() ?? [];
                                     <tbody>
                                     <?php foreach ($transports as $t): ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($t['form_date'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($t['firm_date'] ?? '') ?></td>
                                             <td><?= htmlspecialchars($t['firm_id'] ?? '') ?></td>
                                             <td><?= htmlspecialchars($t['origin_location'] ?? '') ?></td>
                                             <td><?= htmlspecialchars($t['destination_location'] ?? '') ?></td>

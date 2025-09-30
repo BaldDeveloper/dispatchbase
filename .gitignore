@@ -21,3 +21,4 @@ tmp/
 # Environment files
 .env
 .env.*
+/.idea/copilotDiffState.xml

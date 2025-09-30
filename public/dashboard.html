@@ -1126,7 +1126,12 @@
             if (topnav) {
                 topnav.innerHTML = html;
                 feather.replace();
-                initSidebarToggle();
+                // Sidebar toggle logic - moved here to ensure #sidebarToggle exists
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('#sidebarToggle')) {
+                        document.getElementById('layoutSidenav_nav').classList.toggle('sidenav-toggled');
+                    }
+                });
             }
         });
     // Dynamically load sidebar.html into #layoutSidenav_nav

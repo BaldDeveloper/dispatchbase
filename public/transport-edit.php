@@ -4,10 +4,16 @@ require_once 'database/TransportData.php';
 require_once 'database/Database.php';
 require_once 'database/DecedentData.php';
 require_once 'database/CustomerData.php';
+require_once 'database/LocationsData.php';
+require_once 'database/CoronerData.php';
+require_once 'database/PouchData.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);
 $customerRepo = new CustomerData($db);
+$locationsData = new LocationsData($db);
+$coronerData = new CoronerData($db);
+$pouchData = new PouchData($db);
 
 $success = false;
 $error = '';
@@ -28,6 +34,19 @@ $decedentMiddleName = '';
 $decedentLastName = '';
 $decedentEthnicity = '';
 $decedentGender = '';
+$coronerName = '';
+$pouchType = '';
+
+// Transit section data preparation
+$allLocations = $locationsData->getAllLocations();
+$originLocations = array_filter($allLocations, function($loc) {
+    return $loc['location_type'] === 'origin' || $loc['location_type'] === 'both';
+});
+$destinationLocations = array_filter($allLocations, function($loc) {
+    return $loc['location_type'] === 'destination' || $loc['location_type'] === 'both';
+});
+$coroners = $coronerData->getAll();
+$pouchTypes = $pouchData->getAll();
 
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $transport = $transportRepo->findById($id);
@@ -37,8 +56,11 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $firmAccountType = $transport['firm_account_type'] ?? '';
         $originLocation = $transport['origin_location'] ?? '';
         $destinationLocation = $transport['destination_location'] ?? '';
+        $coronerName = $transport['coroner_name'] ?? '';
         $permitNumber = $transport['permit_number'] ?? '';
         $tagNumber = $transport['tag_number'] ?? '';
+        $pouchType = $transport['pouch_type'] ?? '';
+        $transitPermitNumber = $transport['transit_permit_number'] ?? '';
         $decedentRepo = new DecedentData($db);
         $decedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$id]);
         if (!empty($decedent[0])) {
@@ -77,6 +99,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
     $lastName = $_POST['last_name'] ?? $decedentLastName;
     $ethnicity = $_POST['ethnicity'] ?? $decedentEthnicity;
     $gender = $_POST['gender'] ?? $decedentGender;
+    // Get posted transit values
+    $originLocationId = $_POST['origin_location'] ?? $originLocation;
+    $destinationLocationId = $_POST['destination_location'] ?? $destinationLocation;
+    $coronerId = $_POST['coroner'] ?? '';
+    $pouchType = $_POST['pouch_type'] ?? '';
+    $transitPermitNumber = $_POST['transit_permit_number'] ?? '';
+    $tagNumber = $_POST['tag_number'] ?? '';
+    // Lookup coroner name from ID
+    $coronerName = '';
+    foreach ($coroners as $c) {
+        if (($c['id'] ?? $c['coroner_number']) == $coronerId) {
+            $coronerName = $c['coroner_name'];
+            break;
+        }
+    }
     $decedentRepo = new DecedentData($db);
     $transport_id = $id ? (int)$id : null;
     if ($firmId && $firmDate && $firmAccountType) {
@@ -87,7 +124,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $transport_id,
                     (int)$firmId,
                     $firmDate,
-                    $firmAccountType
+                    $firmAccountType,
+                    $originLocationId,
+                    $destinationLocationId,
+                    $coronerName,
+                    $pouchType,
+                    $transitPermitNumber,
+                    $tagNumber
                 );
                 // Update decedent table with matching transport_id
                 $decedentRepo->updateByTransportId(
@@ -101,7 +144,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                 $transport_id = $transportRepo->create(
                     (int)$firmId,
                     $firmDate,
-                    $firmAccountType
+                    $firmAccountType,
+                    $originLocationId,
+                    $destinationLocationId,
+                    $coronerName,
+                    $pouchType,
+                    $transitPermitNumber,
+                    $tagNumber
                 );
                 // Check if decedent record exists for this transport_id
                 $existingDecedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$transport_id]);
@@ -206,8 +255,6 @@ $customers = $customerRepo->getAll();
                                 <input type="hidden" name="decedent_last_name" value="<?= htmlspecialchars($decedentLastName) ?>" />
                                 <input type="hidden" name="decedent_ethnicity" value="<?= htmlspecialchars($decedentEthnicity) ?>" />
                                 <input type="hidden" name="decedent_gender" value="<?= htmlspecialchars($decedentGender) ?>" />
-                                <input type="hidden" name="origin_location" value="<?= htmlspecialchars($originLocation) ?>" />
-                                <input type="hidden" name="destination_location" value="<?= htmlspecialchars($destinationLocation) ?>" />
                                 <input type="hidden" name="permit_number" value="<?= htmlspecialchars($permitNumber) ?>" />
                                 <input type="hidden" name="tag_number" value="<?= htmlspecialchars($tagNumber) ?>" />
                                 <div class="d-flex justify-content-between mt-4">
@@ -308,4 +355,3 @@ $customers = $customerRepo->getAll();
 </script>
 </body>
 </html>
-

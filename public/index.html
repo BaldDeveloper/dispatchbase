@@ -1120,6 +1120,10 @@
             .then(html => {
                 document.getElementById('topnav').outerHTML = html;
                 feather.replace();
+                // Call sidebar toggle initialization after topnav is loaded
+                if (typeof initSidebarToggle === 'function') {
+                    initSidebarToggle();
+                }
             });
         // Dynamically load sidebar.html into #sidebar
         fetch('sidebar.html')
@@ -1134,12 +1138,6 @@
             .then(html => {
                 document.getElementById('footer').outerHTML = html;
             });
-        // Sidebar toggle logic
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('#sidebarToggle')) {
-                document.getElementById('layoutSidenav_nav').classList.toggle('sidenav-toggled');
-            }
-        });
     </script>
 </body>
 </html>
