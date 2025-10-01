@@ -103,7 +103,7 @@ if (
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Add Coroner - DispatchBase</title>
+    <title>Coroner - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -122,7 +122,7 @@ if (
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <nav id="layoutSidenav_nav"></nav>
+    <div id="layoutSidenav_nav"></div>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -133,6 +133,8 @@ if (
                     </div>
                 </div>
             </header>
+
+            <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
                 <div id="default">
                     <div class="card mb-4 w-100">
@@ -221,94 +223,32 @@ if (
     fetch('topnav.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('topnav').innerHTML = html;
-            feather.replace();
-            if (typeof initSidebarToggle === 'function') initSidebarToggle();
+            var topnav = document.getElementById('topnav');
+            if (topnav) {
+                topnav.innerHTML = html;
+                feather.replace();
+                if (typeof initSidebarToggle === 'function') initSidebarToggle();
+            }
         });
     // Dynamically load sidebar.html into #layoutSidenav_nav
     fetch('sidebar.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('layoutSidenav_nav').innerHTML = html;
-            feather.replace();
+            var sidenav = document.getElementById('layoutSidenav_nav');
+            if (sidenav) {
+                sidenav.innerHTML = html;
+                feather.replace();
+            }
         });
     // Dynamically load footer.html into #footer
     fetch('footer.html')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('footer').innerHTML = html;
-        });
-
-    // Format phone number on page load if value exists
-    document.addEventListener('DOMContentLoaded', function() {
-        var phoneInput = document.getElementById('phone_number');
-        if (phoneInput && phoneInput.value) {
-            phoneInput.value = formatPhoneNumber(phoneInput.value);
-        }
-    });
-
-    // Form validation
-    var form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        // Only validate for add/update, not delete
-        var submitter = e.submitter || document.activeElement;
-        if (submitter && submitter.name === 'delete_coroner') return;
-        if (!validateRequiredFields(form) || !validateEmailFields(form)) {
-            e.preventDefault();
-        }
-    });
-
-    function validateRequiredFields(form) {
-        let firstInvalid = null;
-        form.querySelectorAll('.field-error').forEach(function(field) {
-            field.classList.remove('field-error');
-        });
-        form.querySelectorAll('[required]').forEach(function(field) {
-            if (!field.value || field.value.trim() === '') {
-                field.classList.add('field-error');
-                if (!firstInvalid) firstInvalid = field;
+            var footer = document.getElementById('footer');
+            if (footer) {
+                footer.innerHTML = html;
             }
         });
-        // Special case: phone number pattern validation (if present)
-        var phoneInput = form.querySelector('#phone_number');
-        if (phoneInput && phoneInput.value) {
-            var phonePattern = /^\(\d{3}\)\d{3}-\d{4}$/;
-            if (!phonePattern.test(phoneInput.value)) {
-                phoneInput.classList.add('field-error');
-                if (!firstInvalid) firstInvalid = phoneInput;
-            }
-        }
-        if (firstInvalid) {
-            firstInvalid.focus();
-            return false;
-        }
-        return true;
-    }
-
-    function validateEmailFields(form) {
-        let firstInvalid = null;
-        form.querySelectorAll('.email-error').forEach(function(field) {
-            field.classList.remove('email-error');
-        });
-        form.querySelectorAll('.email-pattern').forEach(function(field) {
-            if (!field.value || field.value.trim() === '') {
-                field.classList.add('email-error');
-                if (!firstInvalid) firstInvalid = field;
-            } else {
-                // Use the same pattern as the HTML attribute
-                var pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                if (!pattern.test(field.value)) {
-                    field.classList.add('email-error');
-                    if (!firstInvalid) firstInvalid = field;
-                }
-            }
-        });
-        if (firstInvalid) {
-            firstInvalid.focus();
-            return false;
-        }
-        return true;
-    }
 </script>
 </body>
 </html>

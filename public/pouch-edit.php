@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_pouch']) && $m
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title><?= $mode === 'edit' ? 'Edit' : 'Add' ?> Pouch Type - DispatchBase</title>
+    <title>Pouch Type - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_pouch']) && $m
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <?php include 'sidebar.html'; ?>
+    <div id="layoutSidenav_nav"></div>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -84,8 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_pouch']) && $m
                     </div>
                 </div>
             </header>
+
+            <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
-                <!-- Main content  -->
                 <div class="card mb-4 w-100">
                     <div class="card-header"><?= $mode === 'edit' ? 'Edit' : 'Add' ?> Pouch Type</div>
                     <div class="card-body">

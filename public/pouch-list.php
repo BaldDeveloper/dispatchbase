@@ -24,7 +24,7 @@ $pouches = $pouchRepo->getAll() ?? [];
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <?php include 'sidebar.html'; ?>
+    <div id="layoutSidenav_nav"></div>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -35,8 +35,9 @@ $pouches = $pouchRepo->getAll() ?? [];
                     </div>
                 </div>
             </header>
+
+            <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
-                <!-- Main content -->
                 <div id="default">
                     <div class="card mb-4 w-100">
                         <div class="card-header">Pouch Types</div>

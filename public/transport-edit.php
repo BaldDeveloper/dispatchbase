@@ -226,27 +226,17 @@ $customers = $customerRepo->getAll();
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Add Transport - DispatchBase</title>
+    <title>Transport Edit - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
-    <link href="css/field-error.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
-    <style>
-        .required::after {
-            content: " *";
-            color: red;
-        }
-        .form-section {
-            margin-bottom: 1rem;
-        }
-    </style>
 </head>
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <?php include 'sidebar.html'; ?>
+    <div id="layoutSidenav_nav"></div>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -257,8 +247,9 @@ $customers = $customerRepo->getAll();
                     </div>
                 </div>
             </header>
+
+            <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
-                <!-- Main content -->
                 <div id="default">
                     <div class="card mb-4 w-100">
                         <div class="card-header">Add Transport</div>
@@ -359,48 +350,6 @@ $customers = $customerRepo->getAll();
                 footer.innerHTML = html;
             }
         });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var transportForm = document.getElementById('transportForm');
-        var clientError = document.getElementById('client-error');
-        transportForm.addEventListener('submit', function(e) {
-            // Remove previous error messages and highlighting
-            clientError.style.display = 'none';
-            var previousAlerts = transportForm.querySelectorAll('.field-error-alert');
-            previousAlerts.forEach(function(alert) { alert.remove(); });
-            var requiredFields = transportForm.querySelectorAll('[required]');
-            var firstInvalid = null;
-            requiredFields.forEach(function(field) {
-                field.classList.remove('is-invalid');
-            });
-            for (var i = 0; i < requiredFields.length; i++) {
-                var field = requiredFields[i];
-                if (!field.value || field.value.trim() === '') {
-                    firstInvalid = field;
-                    break;
-                }
-            }
-            if (firstInvalid) {
-                e.preventDefault();
-                firstInvalid.classList.add('is-invalid');
-                // Create and insert error message next to the field
-                var errorDiv = document.createElement('div');
-                errorDiv.className = 'alert alert-danger field-error-alert';
-                errorDiv.style.marginTop = '5px';
-                errorDiv.innerText = 'Please fill in all required fields.';
-                if (firstInvalid.parentNode) {
-                    // If field is inside a table cell or div, insert after
-                    if (firstInvalid.nextSibling) {
-                        firstInvalid.parentNode.insertBefore(errorDiv, firstInvalid.nextSibling);
-                    } else {
-                        firstInvalid.parentNode.appendChild(errorDiv);
-                    }
-                }
-                firstInvalid.focus();
-                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        });
-    });
 </script>
 </body>
 </html>

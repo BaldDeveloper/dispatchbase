@@ -116,27 +116,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Add Customer - DispatchBase</title>
+    <title>Customer - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
-    <link href="css/field-error.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
-    <style>
-        .required::after {
-            content: " *";
-            color: red;
-        }
-        .form-section {
-            margin-bottom: 1rem;
-        }
-    </style>
 </head>
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <?php include 'sidebar.html'; ?>
+    <div id="layoutSidenav_nav"></div>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -148,6 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                     </div>
                 </div>
             </header>
+
+            <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
                 <div id="default">
                     <div class="card mb-4 w-100">
@@ -263,78 +255,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                 footer.innerHTML = html;
             }
         });
-</script>
-<script>
-// Generic required field validation for all forms
-function validateRequiredFields(form) {
-    let firstInvalid = null;
-    // Remove previous error highlighting
-    form.querySelectorAll('.field-error').forEach(function(field) {
-        field.classList.remove('field-error');
-    });
-    // Validate required fields
-    form.querySelectorAll('[required]').forEach(function(field) {
-        if (!field.value || field.value.trim() === '') {
-            field.classList.add('field-error');
-            if (!firstInvalid) firstInvalid = field;
-        }
-    });
-    // Special case: phone number pattern validation (if present)
-    var phoneInput = form.querySelector('#phone_number');
-    if (phoneInput && phoneInput.value) {
-        var phonePattern = /^\(\d{3}\)\d{3}-\d{4}$/;
-        if (!phonePattern.test(phoneInput.value)) {
-            phoneInput.classList.add('field-error');
-            if (!firstInvalid) firstInvalid = phoneInput;
-        }
-    }
-    if (firstInvalid) {
-        firstInvalid.focus();
-        return false;
-    }
-    return true;
-}
-
-// Generic email field validation
-function validateEmailFields(form) {
-    let firstInvalid = null;
-    // Remove previous error highlighting
-    form.querySelectorAll('.email-error').forEach(function(field) {
-        field.classList.remove('email-error');
-    });
-    // Validate email fields
-    form.querySelectorAll('.email-pattern').forEach(function(field) {
-        if (!field.value || field.value.trim() === '') {
-            field.classList.add('email-error');
-            if (!firstInvalid) firstInvalid = field;
-        } else {
-            // Use the same pattern as the HTML attribute
-            var pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            if (!pattern.test(field.value)) {
-                field.classList.add('email-error');
-                if (!firstInvalid) firstInvalid = field;
-            }
-        }
-    });
-    if (firstInvalid) {
-        firstInvalid.focus();
-        return false;
-    }
-    return true;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    var form = document.querySelector('form[method="POST"]');
-    if (!form) return;
-    form.addEventListener('submit', function(e) {
-        // Only validate for add/update, not delete
-        var submitter = e.submitter || document.activeElement;
-        if (submitter && submitter.name === 'delete_customer') return;
-        if (!validateRequiredFields(form) || !validateEmailFields(form)) {
-            e.preventDefault();
-        }
-    });
-});
 </script>
 </body>
 </html>

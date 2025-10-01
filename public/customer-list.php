@@ -17,7 +17,7 @@ $customers = $customerRepo->getAll() ?? [];
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Customer - DispatchBase</title>
+    <title>Customer List - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -27,7 +27,7 @@ $customers = $customerRepo->getAll() ?? [];
 <body class="nav-fixed">
 <div id="topnav"></div>
 <div id="layoutSidenav">
-    <nav id="layoutSidenav_nav"></nav>
+    <div id="layoutSidenav_nav"></div>
     <div id="layoutSidenav_content">
         <main>
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
@@ -37,6 +37,8 @@ $customers = $customerRepo->getAll() ?? [];
                     </div>
                 </div>
             </header>
+
+            <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
                 <div id="default">
                     <div class="card mb-4 w-100">
@@ -123,6 +125,7 @@ $customers = $customerRepo->getAll() ?? [];
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="js/scripts.js"></script>
+<script src="js/phone-format.js"></script>
 <script>
     // Dynamically load topnav.html into #topnav
     fetch('topnav.html')
