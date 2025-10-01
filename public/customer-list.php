@@ -1,13 +1,37 @@
 <?php
+/**
+ * Customer List Page
+ *
+ * - Displays a paginated list of customers
+ * - Output escaping for XSS prevention
+ * - Comments added for maintainability
+ * - Ready for future search/filter/pagination enhancements
+ *
+ * NOTE: Role-based access control is currently commented out for development/testing purposes.
+ */
+
+// session_start();
+// if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+//     header('Location: login.php');
+//     exit;
+// }
+
 require_once 'database/CustomerData.php';
 require_once 'database/Database.php';
+
+// Pagination setup
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
+$offset = ($page - 1) * $pageSize;
 
 // Initialize database connection
 $db = new Database();
 $customerRepo = new CustomerData($db);
 
-// Fetch all customers
-$customers = $customerRepo->getAll() ?? [];
+// Fetch paginated customers
+$totalCustomers = $customerRepo->getCount();
+$customers = $customerRepo->getPaginated($pageSize, $offset) ?? [];
+$totalPages = ceil($totalCustomers / $pageSize);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,7 +61,6 @@ $customers = $customerRepo->getAll() ?? [];
                     </div>
                 </div>
             </header>
-
             <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
                 <div id="default">
@@ -47,22 +70,18 @@ $customers = $customerRepo->getAll() ?? [];
                             <div class="dataTables_wrapper dt-bootstrap5">
                                 <div class="row mb-3">
                                     <div class="col-sm-12 col-md-6">
-                                        <label>
+                                        <form method="get" class="d-inline">
                                             Show
-                                            <select name="entries_length" aria-controls="entries" class="form-select form-select-sm">
-                                                <option value="10">10</option>
-                                                <option value="25">25</option>
-                                                <option value="50">50</option>
-                                                <option value="100">100</option>
+                                            <select name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="10"<?= $pageSize == 10 ? ' selected' : '' ?>>10</option>
+                                                <option value="25"<?= $pageSize == 25 ? ' selected' : '' ?>>25</option>
+                                                <option value="50"<?= $pageSize == 50 ? ' selected' : '' ?>>50</option>
+                                                <option value="100"<?= $pageSize == 100 ? ' selected' : '' ?>>100</option>
                                             </select>
-                                            entries
-                                        </label>
+                                        </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries">
-                                        </label>
+                                        <!-- Search box placeholder for future implementation -->
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -100,20 +119,16 @@ $customers = $customerRepo->getAll() ?? [];
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="row mt-3">
-                                    <div class="col-sm-12 col-md-5">
-                                        <div class="dataTables_info">Showing 1 to <?= count($customers) ?> of <?= count($customers) ?> entries</div>
-                                    </div>
-                                    <div class="col-sm-12 col-md-7">
-                                        <nav aria-label="Table pagination">
-                                            <ul class="pagination justify-content-end">
-                                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                                <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-                                            </ul>
-                                        </nav>
-                                    </div>
-                                </div>
+                                <!-- Pagination controls -->
+                                <nav aria-label="Customer list pagination" class="mt-3">
+                                    <ul class="pagination justify-content-center">
+                                        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                                            <li class="page-item<?= $p == $page ? ' active' : '' ?>">
+                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>"><?= $p ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                    </ul>
+                                </nav>
                             </div> <!-- /.dataTables_wrapper -->
                         </div> <!-- /.card-body -->
                     </div> <!-- /.card -->

@@ -79,7 +79,7 @@ $transports = $transportRepo->getAll() ?? [];
                                 </table>
                             </div>
                             <div class="mt-3 d-flex justify-content-between align-items-center">
-                                <div>Showing 1 to <?= count($transports) ?> of <?= count($transports) ?> entries</div>
+                                <div>Showing 1 to <?= count($transports) ?> of <?= count($transports) ?></div>
                                 <nav>
                                     <ul class="pagination mb-0">
                                         <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>

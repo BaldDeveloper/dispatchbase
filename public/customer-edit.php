@@ -1,4 +1,22 @@
 <?php
+/**
+ * Customer Edit Page
+ *
+ * - Handles add, edit, and delete of customer records
+ * - Uses repository for all DB access
+ * - CSRF protection and output escaping for security
+ * - Validation logic extracted for maintainability
+ * - Comments added for clarity
+ * - Role-based access control can be added if needed
+ *
+ * NOTE: Role-based access control is currently commented out for development/testing purposes.
+ */
+// session_start();
+// if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+//     header('Location: login.php');
+//     exit;
+// }
+
 require_once 'database/CustomerData.php';
 require_once 'database/Database.php';
 require_once __DIR__ . '/../includes/csrf.php';
@@ -10,16 +28,24 @@ $states = include __DIR__ . '/../includes/states.php';
 
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
-$success = false;
+$status = '';
 $error = '';
 
-if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $sql = "SELECT * FROM customer WHERE customer_number = ?";
-    $params = [$id];
-    $result = $db->query($sql, $params);
+/**
+ * Validate customer fields for add/edit
+ * @return string Error message or empty string if valid
+ */
+function validate_customer_fields($companyName, $emailAddress, $city, $state, $states) {
+    if (!$companyName || !$state || !$emailAddress || !$city) return 'Please fill in all required fields.';
+    if (!array_key_exists($state, $states)) return 'Invalid state selected.';
+    if (!filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) return 'Invalid email address.';
+    return '';
+}
 
-    if (count($result) > 0) {
-        $customer = $result[0];
+// If editing, load existing customer data
+if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $customer = $customerRepo->findByCustomerNumber($id);
+    if ($customer) {
         $companyName = $customer['company_name'] ?? '';
         $phoneNumber = $customer['phone_number'] ?? '';
         $emailAddress = $customer['email_address'] ?? '';
@@ -29,19 +55,20 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $state = $customer['state'] ?? '';
         $zip = $customer['zip'] ?? '';
     }
-
 }
 
+// Handle delete request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) && $mode === 'edit' && $id) {
     try {
         $customerRepo->delete($id);
-        $success = 'deleted';
+        $status = 'deleted';
         // Clear form values so form does not show after deletion
         $companyName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
     } catch (Exception $e) {
         $error = 'Error deleting customer: ' . htmlspecialchars($e->getMessage());
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize and trim input values
     $companyName = trim($_POST['company_name'] ?? '');
     $phoneNumber = trim($_POST['phone_number'] ?? '');
     $emailAddress = trim($_POST['email_address'] ?? '');
@@ -49,22 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     $address2 = trim($_POST['address_2'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $state = trim($_POST['state'] ?? '');
-    // Validate state abbreviation
-    if (!array_key_exists($state, $states)) {
-        $error = 'Invalid state selected.';
-        $state = '';
-    }
     $zip = trim($_POST['zip'] ?? '');
 
-    // Ensure all optional fields are blank if not set
-    $phoneNumber = $phoneNumber ?: '';
-    $address1 = $address1 ?: '';
-    $address2 = $address2 ?: '';
-    $city = $city ?: '';
-    $zip = $zip ?: '';
-
-    // Basic validation
-    if ($companyName && $state && $emailAddress && $city && !$error) {
+    // Validate fields
+    $error = validate_customer_fields($companyName, $emailAddress, $city, $state, $states);
+    if (!$error) {
         if ($mode === 'add') {
             try {
                 $customerRepo->create(
@@ -77,18 +93,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                     $zip,
                     $emailAddress
                 );
-                $success = true;
+                $status = 'added';
                 // Clear form fields after successful add
-                if ($mode === 'add') {
-                    $companyName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
-                }
+                $companyName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
             } catch (Exception $e) {
                 $error = 'Error adding customer: ' . htmlspecialchars($e->getMessage());
             }
         } elseif ($mode === 'edit' && $id) {
             try {
                 $customerRepo->update(
-                    $id, // no need to assign $customerNumber here
+                    $id,
                     $companyName,
                     $phoneNumber,
                     $address1,
@@ -98,13 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                     $zip,
                     $emailAddress
                 );
-                $success = true;
+                $status = 'updated';
             } catch (Exception $e) {
                 $error = 'Error updating customer: ' . htmlspecialchars($e->getMessage());
             }
         }
-    } else {
-        $error = 'Please fill in all required fields.';
     }
 }
 ?>
@@ -145,20 +157,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                     <div class="card mb-4 w-100">
                         <div class="card-header">Add Customer</div>
                         <div class="card-body">
-                            <?php if ($success === 'deleted'): ?>
+                            <?php if ($status === 'deleted'): ?>
                                 <div class="alert alert-success" role="alert">
                                     Customer deleted successfully!
                                 </div>
-                            <?php elseif ($success): ?>
+                            <?php elseif ($status === 'added' || $status === 'updated'): ?>
                                 <div class="alert alert-success" role="alert">
-                                    Customer added/updated successfully!
+                                    Customer <?= $status === 'added' ? 'added' : 'updated' ?> successfully!
                                 </div>
                             <?php elseif ($error): ?>
                                 <div class="alert alert-danger" role="alert">
                                     <?= $error ?>
                                 </div>
                             <?php endif; ?>
-                            <?php if ($success !== 'deleted'): ?>
+                            <?php if ($status !== 'deleted'): ?>
                             <form method="POST">
                                 <div class="row form-section">
                                     <div class="col-md-6">

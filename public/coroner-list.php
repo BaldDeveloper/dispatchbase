@@ -1,13 +1,26 @@
 <?php
+// Role-based access control: Only allow access if user is admin or staff
+// session_start();
+// if (!isset($_SESSION['user_role']) || !in_array($_SESSION['user_role'], ['admin', 'staff'])) {
+//     header('Location: login.php');
+//     exit;
+// }
+
 require_once 'database/CoronerData.php';
 require_once 'database/Database.php';
 
 // Initialize database connection
 $db = new Database();
-$coronerRepo = new CoronerData($db);
+$coronerRepository = new CoronerData($db);
 
-// Fetch all coroners
-$coroners = $coronerRepo->getAll() ?? [];
+// Pagination setup
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
+$offset = ($page - 1) * $limit;
+$totalCoroners = $coronerRepository->getCount();
+$totalPages = $limit > 0 ? (int)ceil($totalCoroners / $limit) : 1;
+$coroners = $coronerRepository->getPaginated($limit, $offset) ?? [];
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,24 +55,25 @@ $coroners = $coronerRepo->getAll() ?? [];
                     <div class="card mb-4 w-100">
                         <div class="card-header">Coroner List</div>
                         <div class="card-body">
+                            <!-- Data table for coroners. For large datasets, use AJAX/DataTables for pagination/filtering. -->
                             <div class="dataTables_wrapper dt-bootstrap5">
                                 <div class="row mb-3">
                                     <div class="col-sm-12 col-md-6">
                                         <label>
                                             Show
-                                            <select name="entries_length" aria-controls="entries" class="form-select form-select-sm">
-                                                <option value="10">10</option>
-                                                <option value="25">25</option>
-                                                <option value="50">50</option>
-                                                <option value="100">100</option>
+                                            <select name="entries_length" aria-controls="entries" class="form-select form-select-sm" onchange="window.location.href='?limit='+this.value">
+                                                <option value="10"<?= $limit == 10 ? ' selected' : '' ?>>10</option>
+                                                <option value="25"<?= $limit == 25 ? ' selected' : '' ?>>25</option>
+                                                <option value="50"<?= $limit == 50 ? ' selected' : '' ?>>50</option>
+                                                <option value="100"<?= $limit == 100 ? ' selected' : '' ?>>100</option>
                                             </select>
-                                            entries
                                         </label>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
+                                        <!-- Search box UI only, backend search not implemented yet -->
                                         <label>
                                             Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries">
+                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
                                         </label>
                                     </div>
                                 </div>
@@ -92,6 +106,22 @@ $coroners = $coronerRepo->getAll() ?? [];
                                         </tbody>
                                     </table>
                                 </div>
+                                <!-- Pagination controls -->
+                                <nav aria-label="Coroner list pagination" class="mt-3">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item<?= $page <= 1 ? ' disabled' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $page - 1 ?>&limit=<?= $limit ?>" tabindex="-1">Previous</a>
+                                        </li>
+                                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                            <li class="page-item<?= $i == $page ? ' active' : '' ?>">
+                                                <a class="page-link" href="?page=<?= $i ?>&limit=<?= $limit ?>"><?= $i ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item<?= $page >= $totalPages ? ' disabled' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $page + 1 ?>&limit=<?= $limit ?>">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
                             </div> <!-- /.dataTables_wrapper -->
                         </div> <!-- /.card-body -->
                     </div> <!-- /.card -->

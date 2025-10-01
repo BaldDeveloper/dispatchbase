@@ -19637,3 +19637,8 @@ table thead {
   background-color: var(--bs-gray-100, #f2f6fc);
   font-weight: 500;
 }
+
+.form-label.required::after {
+    content: " *";
+    color: red;
+}

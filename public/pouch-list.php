@@ -4,7 +4,14 @@ require_once 'database/Database.php';
 
 $db = new Database();
 $pouchRepo = new PouchData($db);
-$pouches = $pouchRepo->getAll() ?? [];
+
+// Pagination setup
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
+$offset = ($page - 1) * $limit;
+$totalPouches = $pouchRepo->getCount();
+$totalPages = $limit > 0 ? (int)ceil($totalPouches / $limit) : 1;
+$pouches = $pouchRepo->getPaginated($limit, $offset) ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,28 +49,66 @@ $pouches = $pouchRepo->getAll() ?? [];
                     <div class="card mb-4 w-100">
                         <div class="card-header">Pouch Types</div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover mb-0">
-                                    <thead class="table-light">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Pouch Type</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php foreach ($pouches as $pouch): ?>
+                            <div class="dataTables_wrapper dt-bootstrap5">
+                                <div class="row mb-3">
+                                    <div class="col-sm-12 col-md-6">
+                                        <label>
+                                            Show
+                                            <select name="entries_length" aria-controls="entries" class="form-select form-select-sm" onchange="window.location.href='?limit='+this.value">
+                                                <option value="10"<?= $limit == 10 ? ' selected' : '' ?>>10</option>
+                                                <option value="25"<?= $limit == 25 ? ' selected' : '' ?>>25</option>
+                                                <option value="50"<?= $limit == 50 ? ' selected' : '' ?>>50</option>
+                                                <option value="100"<?= $limit == 100 ? ' selected' : '' ?>>100</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-12 col-md-6 text-end">
+                                        <!-- Search box UI only, backend search not implemented yet -->
+                                        <label>
+                                            Search:
+                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover mb-0">
+                                        <thead class="table-light">
                                         <tr>
-                                            <td><a href="pouch-edit.php?mode=edit&id=<?= htmlspecialchars($pouch['pouch_id'] ?? '') ?>"><?= htmlspecialchars($pouch['pouch_id'] ?? '') ?></a></td>
-                                            <td><?= htmlspecialchars($pouch['pouch_type'] ?? '') ?></td>
+                                            <th>ID</th>
+                                            <th>Pouch Type</th>
                                         </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($pouches)): ?>
-                                        <tr>
-                                            <td colspan="2" class="text-danger">No pouch types found.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                        <?php foreach ($pouches as $pouch): ?>
+                                            <tr>
+                                                <td><a href="pouch-edit.php?mode=edit&id=<?= htmlspecialchars($pouch['pouch_id'] ?? '') ?>"><?= htmlspecialchars($pouch['pouch_id'] ?? '') ?></a></td>
+                                                <td><?= htmlspecialchars($pouch['pouch_type'] ?? '') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($pouches)): ?>
+                                            <tr>
+                                                <td colspan="2" class="text-danger">No pouch types found.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Pagination controls -->
+                                <nav aria-label="Pouch list pagination" class="mt-3">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item<?= $page <= 1 ? ' disabled' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $page - 1 ?>&limit=<?= $limit ?>" tabindex="-1">Previous</a>
+                                        </li>
+                                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                            <li class="page-item<?= $i == $page ? ' active' : '' ?>">
+                                                <a class="page-link" href="?page=<?= $i ?>&limit=<?= $limit ?>"><?= $i ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item<?= $page >= $totalPages ? ' disabled' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $page + 1 ?>&limit=<?= $limit ?>">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
                             </div>
                         </div>
                     </div>

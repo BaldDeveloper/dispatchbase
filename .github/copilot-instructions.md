@@ -21,3 +21,6 @@ For all pages in this project, any field for phone number, email, or US state mu
 - Any new or existing page with these fields must match the customer page's user experience and validation for these fields exactly.
 - If the customer page is updated, all other pages must be updated to match.
 
+# Additional Standardization Requirement: Required Field Indicators
+- For any page with required fields, include a red asterisk next to the label to visually indicate the field is required. The asterisk should be styled consistently (e.g., using a CSS class such as `.required` with a red color).
+- When a required field is not filled, display the message: "Please fill in all required fields." This message should be shown in a clear and visible manner, matching the style and behavior of the customer-edit page.
