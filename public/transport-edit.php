@@ -8,6 +8,7 @@ require_once 'database/LocationsData.php';
 require_once 'database/CoronerData.php';
 require_once 'database/PouchData.php';
 require_once 'database/UserData.php';
+require_once 'database/TransportChargesData.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);
@@ -16,6 +17,7 @@ $locationsData = new LocationsData($db);
 $coronerData = new CoronerData($db);
 $pouchData = new PouchData($db);
 $userData = new UserData($db);
+$chargesRepo = new TransportChargesData($db);
 
 $success = false;
 $error = '';
@@ -61,6 +63,12 @@ $drivers = $userData->getDrivers();
 
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $transport = $transportRepo->findById($id);
+    $charges = $chargesRepo->findByTransportId($id) ?: [
+        'removal_charge' => '',
+        'pouch_charge' => '',
+        'embalming_charge' => '',
+        'cremation_charge' => ''
+    ];
     if ($transport) {
         $firmId = $transport['firm_id'] ?? '';
         $firmDate = $transport['firm_date'] ?? '';
@@ -137,7 +145,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
             break;
         }
     }
-    $decedentRepo = new DecedentData($db);
+    // Get mileage fields from POST
+    $mileage = isset($_POST['mileage']) ? (float)$_POST['mileage'] : null;
+    $mileage_rate = isset($_POST['mileage_rate']) ? (float)$_POST['mileage_rate'] : null;
+    $mileage_total_charge = isset($_POST['mileage_total_charge']) ? (float)$_POST['mileage_total_charge'] : null;
+    // Get charges fields from POST
+    $removal_charge = isset($_POST['removal_charge']) ? (float)$_POST['removal_charge'] : 0.00;
+    $pouch_charge = isset($_POST['pouch_charge']) ? (float)$_POST['pouch_charge'] : 0.00;
+    $embalming_charge = isset($_POST['embalming_charge']) ? (float)$_POST['embalming_charge'] : 0.00;
+    $cremation_charge = isset($_POST['cremation_charge']) ? (float)$_POST['cremation_charge'] : 0.00;
+    $decedentRepo = new DecedentData($db); // Ensure this is initialized before use
     $transport_id = $id ? (int)$id : null;
     if ($firmId && $firmDate && $firmAccountType && $callTime && $arrivalTime && $departureTime && $deliveryTime) {
         try {
@@ -159,8 +176,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $departureTime,
                     $deliveryTime,
                     $primaryTransporter ? (int)$primaryTransporter : null,
-                    $assistantTransporter ? (int)$assistantTransporter : null
+                    $assistantTransporter ? (int)$assistantTransporter : null,
+                    $mileage,
+                    $mileage_rate,
+                    $mileage_total_charge
                 );
+                // Update charges record
+                $existingCharges = $chargesRepo->findByTransportId($transport_id);
+                if ($existingCharges) {
+                    $chargesRepo->update(
+                        $existingCharges['id'],
+                        $transport_id,
+                        $removal_charge,
+                        $pouch_charge,
+                        $embalming_charge,
+                        0.00, // transport_fees
+                        $cremation_charge,
+                        0.00, // wait_charge
+                        0.00, // mileage_fees
+                        0.00, // other_charge_1
+                        null, // other_charge_1_description
+                        0.00, // other_charge_2
+                        null, // other_charge_2_description
+                        0.00, // other_charge_3
+                        null, // other_charge_3_description
+                        0.00, // other_charge_4
+                        null, // other_charge_4_description
+                        0.00  // total_charge
+                    );
+                } else {
+                    $chargesRepo->create(
+                        $transport_id,
+                        $removal_charge,
+                        $pouch_charge,
+                        $embalming_charge,
+                        0.00, // transport_fees
+                        $cremation_charge,
+                        0.00, // wait_charge
+                        0.00, // mileage_fees
+                        0.00, // other_charge_1
+                        null, // other_charge_1_description
+                        0.00, // other_charge_2
+                        null, // other_charge_2_description
+                        0.00, // other_charge_3
+                        null, // other_charge_3_description
+                        0.00, // other_charge_4
+                        null, // other_charge_4_description
+                        0.00  // total_charge
+                    );
+                }
                 // Update decedent table with matching transport_id
                 $decedentRepo->updateByTransportId(
                     $transport_id,
@@ -185,7 +249,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $departureTime,
                     $deliveryTime,
                     $primaryTransporter ? (int)$primaryTransporter : null,
-                    $assistantTransporter ? (int)$assistantTransporter : null
+                    $assistantTransporter ? (int)$assistantTransporter : null,
+                    $mileage,
+                    $mileage_rate,
+                    $mileage_total_charge
+                );
+                // Create charges record
+                $chargesRepo->create(
+                    $transport_id,
+                    $removal_charge,
+                    $pouch_charge,
+                    $embalming_charge,
+                    0.00, // transport_fees
+                    $cremation_charge,
+                    0.00, // wait_charge
+                    0.00, // mileage_fees
+                    0.00, // other_charge_1
+                    null, // other_charge_1_description
+                    0.00, // other_charge_2
+                    null, // other_charge_2_description
+                    0.00, // other_charge_3
+                    null, // other_charge_3_description
+                    0.00, // other_charge_4
+                    null, // other_charge_4_description
+                    0.00  // total_charge
                 );
                 // Check if decedent record exists for this transport_id
                 $existingDecedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$transport_id]);
@@ -277,18 +364,11 @@ $customers = $customerRepo->getAll();
 
                                 <?php include('times-edit.php'); ?>
 
-                                <div id="charges-section">
-                                    <div class="container-xl px-1">
-                                        <div class="page-header-content pt-4">
-                                            <div class="row align-items-center justify-content-between">
-                                                <h4>Charges Information</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- add includes here when ready -->
+                                <?php include('mileage-edit.php'); ?>
+
+                                <?php include('charges-edit.php'); ?>
 
 
-                                </div>
                                 <!-- Hidden fields for all other transport columns with default values -->
                                 <input type="hidden" name="decedent_first_name" value="<?= htmlspecialchars($decedentFirstName) ?>" />
                                 <input type="hidden" name="decedent_middle_name" value="<?= htmlspecialchars($decedentMiddleName) ?>" />

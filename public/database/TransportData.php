@@ -24,12 +24,15 @@ class TransportData {
         string $departureTime,
         string $deliveryTime,
         ?int $primaryTransporter = null,
-        ?int $assistantTransporter = null
+        ?int $assistantTransporter = null,
+        ?float $mileage = null,
+        ?float $mileage_rate = null,
+        ?float $mileage_total_charge = null
     ): int {
         $sql = "INSERT INTO transport (
-            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, call_time, arrival_time, departure_time, delivery_time, primary_transporter, assistant_transporter
+            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, call_time, arrival_time, departure_time, delivery_time, primary_transporter, assistant_transporter, mileage, mileage_rate, mileage_total_charge
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )";
         $params = [
             $firmId,
@@ -46,7 +49,10 @@ class TransportData {
             $departureTime,
             $deliveryTime,
             $primaryTransporter,
-            $assistantTransporter
+            $assistantTransporter,
+            $mileage,
+            $mileage_rate,
+            $mileage_total_charge
         ];
         // Clear the error log before each run
         @file_put_contents(__DIR__ . '/../../database/db_error.log', '');
@@ -90,7 +96,10 @@ class TransportData {
         string $departureTime,
         string $deliveryTime,
         ?int $primaryTransporter = null,
-        ?int $assistantTransporter = null
+        ?int $assistantTransporter = null,
+        ?float $mileage = null,
+        ?float $mileage_rate = null,
+        ?float $mileage_total_charge = null
     ): int {
         $sql = "UPDATE transport SET
             firm_id = ?,
@@ -107,7 +116,10 @@ class TransportData {
             departure_time = ?,
             delivery_time = ?,
             primary_transporter = ?,
-            assistant_transporter = ?
+            assistant_transporter = ?,
+            mileage = ?,
+            mileage_rate = ?,
+            mileage_total_charge = ?
             WHERE transport_id = ?";
         $params = [
             $firmId,
@@ -125,6 +137,9 @@ class TransportData {
             $deliveryTime,
             $primaryTransporter,
             $assistantTransporter,
+            $mileage,
+            $mileage_rate,
+            $mileage_total_charge,
             $transportId
         ];
         return $this->db->execute($sql, $params);
