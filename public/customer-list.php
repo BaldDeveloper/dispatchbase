@@ -81,7 +81,10 @@ $totalPages = ceil($totalCustomers / $pageSize);
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <!-- Search box placeholder for future implementation -->
+                                        <label>
+                                            Search:
+                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
+                                        </label>
                                     </div>
                                 </div>
                                 <div class="table-responsive">

@@ -161,4 +161,21 @@ class TransportData {
         $sql = "DELETE FROM transport WHERE transport_id = ?";
         return $this->db->execute($sql, [$transport_id]);
     }
+
+    public function getCount(): int {
+        $sql = "SELECT COUNT(*) AS cnt FROM transport";
+        $result = $this->db->query($sql);
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    public function getPaginated(int $pageSize, int $offset): array {
+        $pageSize = max(1, (int)$pageSize);
+        $offset = max(0, (int)$offset);
+        $sql = "SELECT t.*, d.first_name AS decedent_first_name, d.last_name AS decedent_last_name
+                FROM transport t
+                LEFT JOIN decedent d ON t.transport_id = d.transport_id
+                ORDER BY t.transport_id DESC
+                LIMIT $pageSize OFFSET $offset";
+        return $this->db->query($sql);
+    }
 }

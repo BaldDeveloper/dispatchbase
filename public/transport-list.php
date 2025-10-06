@@ -15,14 +15,9 @@ $transportRepo = new TransportData($db);
 $chargesRepo = new TransportChargesData($db);
 $locationsData = new LocationsData($db);
 
-// Fetch all transport logs
-if (method_exists($transportRepo, 'getCount')) {
-    $totalTransports = $transportRepo->getCount();
-} else {
-    $allTransports = $transportRepo->getAll() ?? [];
-    $totalTransports = is_array($allTransports) ? count($allTransports) : 0;
-}
-$transports = method_exists($transportRepo, 'getPaginated') ? $transportRepo->getPaginated($pageSize, $offset) : array_slice($transportRepo->getAll() ?? [], $offset, $pageSize);
+// Efficient paginated fetch
+$totalTransports = $transportRepo->getCount();
+$transports = $transportRepo->getPaginated($pageSize, $offset);
 $totalPages = ceil($totalTransports / $pageSize);
 $allLocations = $locationsData->getAllLocations();
 $locationNames = [];
@@ -80,7 +75,10 @@ foreach ($allLocations as $loc) {
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <!-- Search box placeholder for future implementation -->
+                                        <label>
+                                            Search:
+                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
+                                        </label>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
