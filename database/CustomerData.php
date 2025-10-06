@@ -69,4 +69,9 @@ class CustomerData {
             "SELECT * FROM customer ORDER BY customer_number DESC LIMIT $limit OFFSET $offset"
         );
     }
+
+    public function existsByName(string $companyName): bool {
+        $result = $this->db->query("SELECT customer_number FROM customer WHERE company_name = ? LIMIT 1", [$companyName]);
+        return !empty($result);
+    }
 }

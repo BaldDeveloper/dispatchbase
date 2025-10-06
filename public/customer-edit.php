@@ -84,22 +84,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     $error = validate_customer_fields($companyName, $emailAddress, $city, $state, $states, $phoneNumber);
     if (!$error) {
         if ($mode === 'add') {
-            try {
-                $customerRepo->create(
-                    $companyName,
-                    $phoneNumber,
-                    $address1,
-                    $address2,
-                    $city,
-                    $state,
-                    $zip,
-                    $emailAddress
-                );
-                $status = 'added';
-                // Clear form fields after successful add
-                $companyName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
-            } catch (Exception $e) {
-                $error = 'Error adding customer: ' . htmlspecialchars($e->getMessage());
+            // Prevent duplicate customer names
+            if ($customerRepo->existsByName($companyName)) {
+                $error = 'A customer with this company name already exists.';
+            } else {
+                try {
+                    $customerRepo->create(
+                        $companyName,
+                        $phoneNumber,
+                        $address1,
+                        $address2,
+                        $city,
+                        $state,
+                        $zip,
+                        $emailAddress
+                    );
+                    $status = 'added';
+                    // Clear form fields after successful add
+                    $companyName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
+                } catch (Exception $e) {
+                    $error = 'Error adding customer: ' . htmlspecialchars($e->getMessage());
+                }
             }
         } elseif ($mode === 'edit' && $id) {
             try {
