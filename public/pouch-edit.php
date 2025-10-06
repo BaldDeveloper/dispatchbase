@@ -1,6 +1,6 @@
 <?php
-require_once 'database/PouchData.php';
-require_once 'database/Database.php';
+require_once __DIR__ . '/../database/PouchData.php';
+require_once __DIR__ . '/../database/Database.php';
 
 $db = new Database();
 $pouchRepo = new PouchData($db);

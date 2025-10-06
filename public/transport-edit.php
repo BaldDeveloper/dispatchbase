@@ -1,14 +1,14 @@
 <?php
 // transport-edit.php
-require_once 'database/TransportData.php';
-require_once 'database/Database.php';
-require_once 'database/DecedentData.php';
-require_once 'database/CustomerData.php';
-require_once 'database/LocationsData.php';
-require_once 'database/CoronerData.php';
-require_once 'database/PouchData.php';
-require_once 'database/UserData.php';
-require_once 'database/TransportChargesData.php';
+require_once __DIR__ . '/../database/TransportData.php';
+require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../database/DecedentData.php';
+require_once __DIR__ . '/../database/CustomerData.php';
+require_once __DIR__ . '/../database/LocationsData.php';
+require_once __DIR__ . '/../database/CoronerData.php';
+require_once __DIR__ . '/../database/PouchData.php';
+require_once __DIR__ . '/../database/UserData.php';
+require_once __DIR__ . '/../database/TransportChargesData.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);
@@ -25,12 +25,21 @@ $error = '';
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
 
+// Validate transport_id
+if ($mode === 'edit') {
+    if (empty($id) || !ctype_digit(strval($id)) || (int)$id <= 0) {
+        die('Invalid or missing transport_id.');
+    }
+}
+
 // Default values for form fields
-$firmId = '';
+$customerId = '';
 $firmDate = '';
-$firmAccountType = '';
+$accountType = '';
 $originLocation = '';
 $destinationLocation = '';
+$originLocationId = '';
+$destinationLocationId = '';
 $permitNumber = '';
 $tagNumber = '';
 $decedentFirstName = '';
@@ -67,12 +76,24 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         'removal_charge' => '',
         'pouch_charge' => '',
         'embalming_charge' => '',
-        'cremation_charge' => ''
+        'transport_fees' => '',
+        'cremation_charge' => '',
+        'wait_charge' => '',
+        'mileage_fees' => '',
+        'other_charge_1' => '',
+        'other_charge_1_description' => '',
+        'other_charge_2' => '',
+        'other_charge_2_description' => '',
+        'other_charge_3' => '',
+        'other_charge_3_description' => '',
+        'other_charge_4' => '',
+        'other_charge_4_description' => '',
+        'total_charge' => ''
     ];
     if ($transport) {
-        $firmId = $transport['firm_id'] ?? '';
+        $customerId = $transport['customer_id'] ?? '';
         $firmDate = $transport['firm_date'] ?? '';
-        $firmAccountType = $transport['firm_account_type'] ?? '';
+        $accountType = $transport['account_type'] ?? '';
         $originLocation = $transport['origin_location'] ?? '';
         $destinationLocation = $transport['destination_location'] ?? '';
         $coronerName = $transport['coroner_name'] ?? '';
@@ -86,6 +107,11 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $arrivalTime = $transport['arrival_time'] ?? '';
         $departureTime = $transport['departure_time'] ?? '';
         $deliveryTime = $transport['delivery_time'] ?? '';
+        $mileage = $transport['mileage'] ?? '';
+        $mileage_rate = $transport['mileage_rate'] ?? '';
+        $mileage_total_charge = $transport['mileage_total_charge'] ?? '';
+        $originLocationId = $transport['origin_location'] ?? '';
+        $destinationLocationId = $transport['destination_location'] ?? '';
         $decedentRepo = new DecedentData($db);
         $decedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$id]);
         if (!empty($decedent[0])) {
@@ -102,69 +128,113 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
             $decedentGender = $transport['decedent_gender'] ?? '';
         }
     }
+    // Set charge variables for form
+    $removal_charge = $charges['removal_charge'] ?? '';
+    $pouch_charge = $charges['pouch_charge'] ?? '';
+    $embalming_charge = $charges['embalming_charge'] ?? '';
+    $transport_fees = $charges['transport_fees'] ?? '';
+    $cremation_charge = $charges['cremation_charge'] ?? '';
+    $wait_charge = $charges['wait_charge'] ?? '';
+    $mileage_fees = $charges['mileage_fees'] ?? '';
+    $other_charge_1 = $charges['other_charge_1'] ?? '';
+    $other_charge_1_description = $charges['other_charge_1_description'] ?? '';
+    $other_charge_2 = $charges['other_charge_2'] ?? '';
+    $other_charge_2_description = $charges['other_charge_2_description'] ?? '';
+    $other_charge_3 = $charges['other_charge_3'] ?? '';
+    $other_charge_3_description = $charges['other_charge_3_description'] ?? '';
+    $other_charge_4 = $charges['other_charge_4'] ?? '';
+    $other_charge_4_description = $charges['other_charge_4_description'] ?? '';
+    $total_charge = $charges['total_charge'] ?? '';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) && $mode === 'edit' && $id) {
     try {
         $decedentRepo = new DecedentData($db);
         $decedentRepo->deleteByTransportId((int)$id);
+        $chargesData = new TransportChargesData($db);
+        $chargesData->deleteByTransportId((int)$id);
         $transportRepo->delete((int)$id);
         $success = 'deleted';
         // Clear form values so form does not show after deletion
-        $firmId = $firmDate = $firmAccountType = $originLocation = $destinationLocation = $permitNumber = $tagNumber = '';
+        $customerId = $firmDate = $accountType = $originLocation = $destinationLocation = $permitNumber = $tagNumber = '';
         $decedentFirstName = $decedentMiddleName = $decedentLastName = $decedentEthnicity = $decedentGender = '';
     } catch (Exception $e) {
         $error = 'Error deleting transport: ' . htmlspecialchars($e->getMessage());
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $firmId = $_POST['firm_id'] ?? '';
-    $firmDate = $_POST['firm_date'] ?? '';
-    $firmAccountType = $_POST['firm_account_type'] ?? '';
-    $firstName = $_POST['first_name'] ?? $decedentFirstName;
-    $lastName = $_POST['last_name'] ?? $decedentLastName;
-    $ethnicity = $_POST['ethnicity'] ?? $decedentEthnicity;
-    $gender = $_POST['gender'] ?? $decedentGender;
-    // Get posted transit values
-    $originLocationId = $_POST['origin_location'] ?? $originLocation;
-    $destinationLocationId = $_POST['destination_location'] ?? $destinationLocation;
-    $coronerId = $_POST['coroner'] ?? '';
-    $pouchType = $_POST['pouch_type'] ?? '';
-    $transitPermitNumber = $_POST['transit_permit_number'] ?? '';
-    $tagNumber = $_POST['tag_number'] ?? '';
+    // Retain all form values from POST, fallback to previous value if not set
+    $customerId = $_POST['customer_id'] ?? $customerId;
+    $firmDate = $_POST['firm_date'] ?? $firmDate;
+    $accountType = $_POST['account_type'] ?? $accountType;
+    $decedentFirstName = $_POST['first_name'] ?? $decedentFirstName;
+    $decedentMiddleName = $_POST['middle_name'] ?? $decedentMiddleName;
+    $decedentLastName = $_POST['last_name'] ?? $decedentLastName;
+    $decedentEthnicity = $_POST['ethnicity'] ?? $decedentEthnicity;
+    $decedentGender = $_POST['gender'] ?? $decedentGender;
+    $originLocation = $_POST['origin_location'] ?? $originLocation;
+    $destinationLocation = $_POST['destination_location'] ?? $destinationLocation;
+    // Ensure location IDs are set for DB update
+    $originLocationId = $originLocation;
+    $destinationLocationId = $destinationLocation;
+    $coronerName = $_POST['coroner'] ?? $coronerName;
+    $pouchType = $_POST['pouch_type'] ?? $pouchType;
+    $transitPermitNumber = $_POST['transit_permit_number'] ?? $transitPermitNumber;
+    $tagNumber = $_POST['tag_number'] ?? $tagNumber;
     $primaryTransporter = $_POST['primary_transporter'] ?? $primaryTransporter;
     $assistantTransporter = $_POST['assistant_transporter'] ?? $assistantTransporter;
-    $callTime = $_POST['call_time'] ?? '';
-    $arrivalTime = $_POST['arrival_time'] ?? '';
-    $departureTime = $_POST['departure_time'] ?? '';
-    $deliveryTime = $_POST['delivery_time'] ?? '';
-    // Lookup coroner name from ID
-    $coronerName = '';
-    foreach ($coroners as $c) {
-        if (($c['id'] ?? $c['coroner_number']) == $coronerId) {
-            $coronerName = $c['coroner_name'];
-            break;
-        }
-    }
-    // Get mileage fields from POST
-    $mileage = isset($_POST['mileage']) ? (float)$_POST['mileage'] : null;
-    $mileage_rate = isset($_POST['mileage_rate']) ? (float)$_POST['mileage_rate'] : null;
-    $mileage_total_charge = isset($_POST['mileage_total_charge']) ? (float)$_POST['mileage_total_charge'] : null;
-    // Get charges fields from POST
-    $removal_charge = isset($_POST['removal_charge']) ? (float)$_POST['removal_charge'] : 0.00;
-    $pouch_charge = isset($_POST['pouch_charge']) ? (float)$_POST['pouch_charge'] : 0.00;
-    $embalming_charge = isset($_POST['embalming_charge']) ? (float)$_POST['embalming_charge'] : 0.00;
-    $cremation_charge = isset($_POST['cremation_charge']) ? (float)$_POST['cremation_charge'] : 0.00;
+    $callTime = $_POST['call_time'] ?? $callTime;
+    $arrivalTime = $_POST['arrival_time'] ?? $arrivalTime;
+    $departureTime = $_POST['departure_time'] ?? $departureTime;
+    $deliveryTime = $_POST['delivery_time'] ?? $deliveryTime;
+    $mileage = $_POST['mileage'] ?? $mileage;
+    $mileage_rate = $_POST['mileage_rate'] ?? $mileage_rate;
+    $mileage_total_charge = $_POST['mileage_total_charge'] ?? $mileage_total_charge;
+    $removal_charge = $_POST['removal_charge'] ?? $removal_charge;
+    $pouch_charge = $_POST['pouch_charge'] ?? $pouch_charge;
+    $embalming_charge = $_POST['embalming_charge'] ?? $embalming_charge;
+    $transport_fees = $_POST['transport_fees'] ?? $transport_fees;
+    $cremation_charge = $_POST['cremation_charge'] ?? $cremation_charge;
+    $wait_charge = $_POST['wait_charge'] ?? $wait_charge;
+    $mileage_fees = $_POST['mileage_fees'] ?? $mileage_fees;
+    $other_charge_1 = $_POST['other_charge_1'] ?? $other_charge_1;
+    $other_charge_1_description = $_POST['other_charge_1_description'] ?? $other_charge_1_description;
+    $other_charge_2 = $_POST['other_charge_2'] ?? $other_charge_2;
+    $other_charge_2_description = $_POST['other_charge_2_description'] ?? $other_charge_2_description;
+    $other_charge_3 = $_POST['other_charge_3'] ?? $other_charge_3;
+    $other_charge_3_description = $_POST['other_charge_3_description'] ?? $other_charge_3_description;
+    $other_charge_4 = $_POST['other_charge_4'] ?? $other_charge_4;
+    $other_charge_4_description = $_POST['other_charge_4_description'] ?? $other_charge_4_description;
+    $total_charge = $_POST['total_charge'] ?? $total_charge;
     $decedentRepo = new DecedentData($db); // Ensure this is initialized before use
+    $chargesData = new TransportChargesData($db); // Ensure this is initialized before use
     $transport_id = $id ? (int)$id : null;
-    if ($firmId && $firmDate && $firmAccountType && $callTime && $arrivalTime && $departureTime && $deliveryTime) {
+    $existingCharges = ($transport_id !== null) ? $chargesData->findByTransportId($transport_id) : null;
+    if ($customerId && $firmDate && $accountType && $callTime && $arrivalTime && $departureTime && $deliveryTime) {
         try {
+            $chargesData = new TransportChargesData($db);
+            // Cast all numeric charge fields to float before DB operations
+            $removal_charge = (float)$removal_charge;
+            $pouch_charge = (float)$pouch_charge;
+            $embalming_charge = (float)$embalming_charge;
+            $transport_fees = (float)$transport_fees;
+            $cremation_charge = (float)$cremation_charge;
+            $wait_charge = (float)$wait_charge;
+            $mileage_fees = (float)$mileage_fees;
+            $other_charge_1 = (float)$other_charge_1;
+            $other_charge_2 = (float)$other_charge_2;
+            $other_charge_3 = (float)$other_charge_3;
+            $other_charge_4 = (float)$other_charge_4;
+            $total_charge = (float)$total_charge;
+            $mileage = isset($mileage) && $mileage !== '' ? (float)$mileage : null;
+            $mileage_rate = isset($mileage_rate) && $mileage_rate !== '' ? (float)$mileage_rate : null;
+            $mileage_total_charge = isset($mileage_total_charge) && $mileage_total_charge !== '' ? (float)$mileage_total_charge : null;
             if ($mode === 'edit' && $transport_id) {
                 // Update transport record
                 $transportRepo->update(
                     $transport_id,
-                    (int)$firmId,
+                    (int)$customerId,
                     $firmDate,
-                    $firmAccountType,
+                    $accountType,
                     $originLocationId,
                     $destinationLocationId,
                     $coronerName,
@@ -182,62 +252,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $mileage_total_charge
                 );
                 // Update charges record
-                $existingCharges = $chargesRepo->findByTransportId($transport_id);
                 if ($existingCharges) {
-                    $chargesRepo->update(
+                    $chargesData->update(
                         $existingCharges['id'],
                         $transport_id,
                         $removal_charge,
                         $pouch_charge,
                         $embalming_charge,
-                        0.00, // transport_fees
+                        $transport_fees,
                         $cremation_charge,
-                        0.00, // wait_charge
-                        0.00, // mileage_fees
-                        0.00, // other_charge_1
-                        null, // other_charge_1_description
-                        0.00, // other_charge_2
-                        null, // other_charge_2_description
-                        0.00, // other_charge_3
-                        null, // other_charge_3_description
-                        0.00, // other_charge_4
-                        null, // other_charge_4_description
-                        0.00  // total_charge
+                        $wait_charge,
+                        $mileage_fees,
+                        $other_charge_1,
+                        $other_charge_1_description,
+                        $other_charge_2,
+                        $other_charge_2_description,
+                        $other_charge_3,
+                        $other_charge_3_description,
+                        $other_charge_4,
+                        $other_charge_4_description,
+                        $total_charge
                     );
                 } else {
-                    $chargesRepo->create(
+                    $chargesData->create(
                         $transport_id,
                         $removal_charge,
                         $pouch_charge,
                         $embalming_charge,
-                        0.00, // transport_fees
+                        $transport_fees,
                         $cremation_charge,
-                        0.00, // wait_charge
-                        0.00, // mileage_fees
-                        0.00, // other_charge_1
-                        null, // other_charge_1_description
-                        0.00, // other_charge_2
-                        null, // other_charge_2_description
-                        0.00, // other_charge_3
-                        null, // other_charge_3_description
-                        0.00, // other_charge_4
-                        null, // other_charge_4_description
-                        0.00  // total_charge
+                        $wait_charge,
+                        $mileage_fees,
+                        $other_charge_1,
+                        $other_charge_1_description,
+                        $other_charge_2,
+                        $other_charge_2_description,
+                        $other_charge_3,
+                        $other_charge_3_description,
+                        $other_charge_4,
+                        $other_charge_4_description,
+                        $total_charge
                     );
                 }
                 // Update decedent table with matching transport_id
                 $decedentRepo->updateByTransportId(
                     $transport_id,
-                    $firstName,
-                    $lastName,
-                    $ethnicity,
-                    $gender
+                    $decedentFirstName,
+                    $decedentLastName,
+                    $decedentEthnicity,
+                    $decedentGender
                 );
             } else {
                 $transport_id = $transportRepo->create(
-                    (int)$firmId,
+                    (int)$customerId,
                     $firmDate,
-                    $firmAccountType,
+                    $accountType,
                     $originLocationId,
                     $destinationLocationId,
                     $coronerName,
@@ -255,42 +324,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                     $mileage_total_charge
                 );
                 // Create charges record
-                $chargesRepo->create(
+                $chargesData->create(
                     $transport_id,
                     $removal_charge,
                     $pouch_charge,
                     $embalming_charge,
-                    0.00, // transport_fees
+                    $transport_fees,
                     $cremation_charge,
-                    0.00, // wait_charge
-                    0.00, // mileage_fees
-                    0.00, // other_charge_1
-                    null, // other_charge_1_description
-                    0.00, // other_charge_2
-                    null, // other_charge_2_description
-                    0.00, // other_charge_3
-                    null, // other_charge_3_description
-                    0.00, // other_charge_4
-                    null, // other_charge_4_description
-                    0.00  // total_charge
+                    $wait_charge,
+                    $mileage_fees,
+                    $other_charge_1,
+                    $other_charge_1_description,
+                    $other_charge_2,
+                    $other_charge_2_description,
+                    $other_charge_3,
+                    $other_charge_3_description,
+                    $other_charge_4,
+                    $other_charge_4_description,
+                    $total_charge
                 );
                 // Check if decedent record exists for this transport_id
                 $existingDecedent = $db->query("SELECT * FROM decedent WHERE transport_id = ?", [$transport_id]);
                 if (empty($existingDecedent)) {
                     $decedentRepo->insertByTransportId(
                         $transport_id,
-                        $firstName,
-                        $lastName,
-                        $ethnicity,
-                        $gender
+                        $decedentFirstName,
+                        $decedentLastName,
+                        $decedentEthnicity,
+                        $decedentGender
                     );
                 } else {
                     $decedentRepo->updateByTransportId(
                         $transport_id,
-                        $firstName,
-                        $lastName,
-                        $ethnicity,
-                        $gender
+                        $decedentFirstName,
+                        $decedentLastName,
+                        $decedentEthnicity,
+                        $decedentGender
                     );
                 }
             }
@@ -321,6 +390,8 @@ $customers = $customerRepo->getAll();
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="nav-fixed">
+
+
 <div id="topnav"></div>
 <div id="layoutSidenav">
     <div id="layoutSidenav_nav"></div>
@@ -340,7 +411,7 @@ $customers = $customerRepo->getAll();
                 <div id="default">
                     <div class="card mb-4 w-100">
                         <div class="card-header">Add Transport</div>
-                        <div class="card-body">
+                           <div class="card-body">
                             <?php if ($success === 'deleted'): ?>
                                 <div class="alert alert-success" role="alert">
                                     Transport deleted successfully!
@@ -355,7 +426,7 @@ $customers = $customerRepo->getAll();
                                 </div>
                             <?php endif; ?>
                             <?php if ($success !== 'deleted'): ?>
-                            <form method="POST">
+                               <form method="POST">
                                 <?php include('firm-edit.php'); ?>
 
                                 <?php include('decedent-edit.php'); ?>
@@ -376,7 +447,6 @@ $customers = $customerRepo->getAll();
                                 <input type="hidden" name="decedent_ethnicity" value="<?= htmlspecialchars($decedentEthnicity) ?>" />
                                 <input type="hidden" name="decedent_gender" value="<?= htmlspecialchars($decedentGender) ?>" />
                                 <input type="hidden" name="permit_number" value="<?= htmlspecialchars($permitNumber) ?>" />
-                                <input type="hidden" name="tag_number" value="<?= htmlspecialchars($tagNumber) ?>" />
                                 <div class="d-flex justify-content-between mt-4">
                                     <button type="submit" class="btn btn-primary" id="saveTransportBtn">
                                         <?= $mode === 'edit' ? 'Update' : 'Add' ?> Transport
@@ -385,10 +455,11 @@ $customers = $customerRepo->getAll();
                                         <button type="submit" name="delete_transport" class="btn btn-secondary" onclick="return confirm('Are you sure you want to delete this transport? This will also delete the associated decedent record.');">Delete Transport</button>
                                     <?php endif; ?>
                                 </div>
+                               </form>
 
-                            </form>
                             <?php endif; ?>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -431,5 +502,7 @@ $customers = $customerRepo->getAll();
             }
         });
 </script>
+
+
 </body>
 </html>

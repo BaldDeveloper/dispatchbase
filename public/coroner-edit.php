@@ -13,9 +13,10 @@
  */
 
 session_start();
-require_once 'database/CoronerData.php';
-require_once 'database/Database.php';
+require_once __DIR__ . '/../database/CoronerData.php';
+require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../includes/csrf.php';
+require_once __DIR__ . '/../includes/validation.php';
 
 // Enforce admin-only access
 //if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
@@ -47,14 +48,10 @@ $error = '';
  * - State must be valid if provided
  */
 function validate_coroner_fields($name, $county, $phone, $email, $city, $state, $states, $counties) {
-    // Only name and county are required
     if (!$name || !$county) return 'Please fill in all required fields.';
     if (!in_array($county, $counties)) return 'Invalid county selection.';
-    // Phone must match (###)###-#### if provided
-    if ($phone !== '' && !preg_match('/^\(\d{3}\)\d{3}-\d{4}$/', $phone)) return 'Invalid phone number format.';
-    // Email must be valid if provided
-    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) return 'Invalid email address.';
-    // State must be valid if provided
+    if ($phone !== '' && !is_valid_phone($phone)) return 'Invalid phone number format.';
+    if ($email !== '' && !is_valid_email($email)) return 'Invalid email address.';
     if ($state !== '' && !array_key_exists($state, $states)) return 'Invalid state selection.';
     return '';
 }
@@ -264,11 +261,11 @@ if (
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="email_address" class="form-label">Email Address</label>
-                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" pattern="<?= EMAIL_PATTERN ?>">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
-                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="\(\d{3}\)\d{3}-\d{4}" autocomplete="off">
+                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="<?= PHONE_PATTERN ?>" autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">

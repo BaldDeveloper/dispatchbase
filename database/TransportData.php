@@ -10,9 +10,9 @@ class TransportData {
 
     // Insert a new record into transport
     public function create(
-        int $firmId,
+        int $customerId,
         string $firmDate,
-        string $firmAccountType,
+        string $accountType,
         string $originLocation,
         string $destinationLocation,
         string $coronerName,
@@ -30,14 +30,14 @@ class TransportData {
         ?float $mileage_total_charge = null
     ): int {
         $sql = "INSERT INTO transport (
-            firm_id, firm_date, firm_account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, call_time, arrival_time, departure_time, delivery_time, primary_transporter, assistant_transporter, mileage, mileage_rate, mileage_total_charge
+            customer_id, firm_date, account_type, origin_location, destination_location, coroner_name, pouch_type, transit_permit_number, tag_number, call_time, arrival_time, departure_time, delivery_time, primary_transporter, assistant_transporter, mileage, mileage_rate, mileage_total_charge
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )";
         $params = [
-            $firmId,
+            $customerId,
             $firmDate,
-            $firmAccountType,
+            $accountType,
             $originLocation,
             $destinationLocation,
             $coronerName,
@@ -82,9 +82,9 @@ class TransportData {
     // Update an existing record in transport
     public function update(
         int $transportId,
-        int $firmId,
+        int $customerId,
         string $firmDate,
-        string $firmAccountType,
+        string $accountType,
         string $originLocation,
         string $destinationLocation,
         string $coronerName,
@@ -102,9 +102,9 @@ class TransportData {
         ?float $mileage_total_charge = null
     ): int {
         $sql = "UPDATE transport SET
-            firm_id = ?,
+            customer_id = ?,
             firm_date = ?,
-            firm_account_type = ?,
+            account_type = ?,
             origin_location = ?,
             destination_location = ?,
             coroner_name = ?,
@@ -122,9 +122,9 @@ class TransportData {
             mileage_total_charge = ?
             WHERE transport_id = ?";
         $params = [
-            $firmId,
+            $customerId,
             $firmDate,
-            $firmAccountType,
+            $accountType,
             $originLocation,
             $destinationLocation,
             $coronerName,
@@ -142,7 +142,19 @@ class TransportData {
             $mileage_total_charge,
             $transportId
         ];
-        return $this->db->execute($sql, $params);
+        error_log('updateTransport called for id ' . $transportId . ' with tag_number: ' . (isset($params[8]) ? $params[8] : 'NOT SET'));
+        error_log('updateTransport SQL: ' . $sql);
+        error_log('updateTransport params: ' . json_encode($params));
+        try {
+            $result = $this->db->execute($sql, $params);
+            if (!$result) {
+                error_log('SQL updateTransport failed: ' . $sql . ' Params: ' . json_encode($params));
+            }
+            return $result;
+        } catch (Exception $e) {
+            error_log('Exception in updateTransport: ' . $e->getMessage());
+            return false;
+        }
     }
 
     public function delete(int $transport_id): int {

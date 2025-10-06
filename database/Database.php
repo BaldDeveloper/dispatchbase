@@ -5,8 +5,8 @@ class Database {
     private PDO $pdo;
 
     public function __construct() {
-        // Load DB config from config/config.php
-        $config = require(__DIR__ . '/../../includes/config.php');
+        // Load DB config from includes/config.php
+        $config = require(__DIR__ . '/../includes/config.php');
         $db_host = $config['DB_HOST'] ?? '127.0.0.1';
         $db_user = $config['DB_USER'] ?? 'root';
         $db_pass = $config['DB_PASS'] ?? '';

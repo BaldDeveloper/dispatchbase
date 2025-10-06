@@ -30,6 +30,14 @@ class DecedentData {
         );
     }
 
+    /**
+     * Log database errors and debug info to decedent-errors.log in the same directory
+     */
+    private function logError(string $message): void {
+        $logFile = __DIR__ . '/decedent-errors.log';
+        error_log(date('[Y-m-d H:i:s] ') . $message . "\n", 3, $logFile);
+    }
+
     public function updateByTransportId(
         int $transport_id,
         string $first_name,
@@ -37,10 +45,12 @@ class DecedentData {
         string $ethnicity,
         string $gender
     ): int {
-        return $this->db->execute(
-            "UPDATE decedent SET first_name = ?, last_name = ?, ethnicity = ?, gender = ? WHERE transport_id = ?",
-            [$first_name, $last_name, $ethnicity, $gender, $transport_id]
-        );
+        $sql = "UPDATE decedent SET first_name = ?, last_name = ?, ethnicity = ?, gender = ? WHERE transport_id = ?";
+        $params = [$first_name, $last_name, $ethnicity, $gender, $transport_id];
+        // Logging for debugging
+        $this->logError("[DecedentData::updateByTransportId] SQL: " . $sql);
+        $this->logError("[DecedentData::updateByTransportId] Params: " . print_r($params, true));
+        return $this->db->execute($sql, $params);
     }
 
     public function delete(int $decedent_id): int {

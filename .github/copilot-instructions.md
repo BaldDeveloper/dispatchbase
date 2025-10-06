@@ -1,26 +1,84 @@
-# Copilot Instructions: Field Formatting and Validation
+# Project Structure and Best Practices
 
-**Standardization Requirement:**
+## Directory Layout
 
-For all pages in this project, any field for phone number, email, or US state must have the exact same formatting and validation behavior as implemented on the customer page (`customer-edit.php`).
+- `/database/` (outside `public/`): Contains all backend PHP files for database access and business logic. **Never place sensitive PHP files inside the `public/` folder.**
+- `/public/`: Contains only files that should be directly accessible by the web server (HTML, JS, CSS, and entry-point PHP files).
+- `/public/assets/`: Static assets (images, fonts, etc.)
+- `/public/js/`: JavaScript files
+- `/public/css/`: Stylesheets
 
-## Phone Number Fields
-- Use the same input pattern, maxlength, and autocomplete attributes as on the customer page.
-- Include the phone-format.js script to provide live formatting as the user types.
-- Apply the same JavaScript and server-side validation logic for phone numbers.
+## Database Files
+- All PHP files for database access (e.g., `TransportData.php`, `CustomerData.php`, etc.) must be in `/database/`.
+- Do not duplicate or move these files into `/public/database/`.
 
-## Email Fields
-- Use the same input pattern for email validation as on the customer page.
-- Apply the same JavaScript and server-side validation logic for emails.
+## Includes/Requires
+- When including database files in PHP scripts under `/public/`, always use the correct relative path:
+  ```php
+  require_once __DIR__ . '/../database/TransportData.php';
+  ```
+- Never use paths that reference `/public/database/`.
 
-## US State Fields
-- Use a dropdown/select for US states, populated from the same source as the customer page.
-- Validate server-side to ensure only valid state abbreviations are accepted.
+## Migration Steps
+- If any database files are found in `/public/database/`, move them to `/database/`.
+- Update all PHP scripts in `/public/` to reference the correct path.
 
-## General
-- Any new or existing page with these fields must match the customer page's user experience and validation for these fields exactly.
-- If the customer page is updated, all other pages must be updated to match.
+## Why?
+- Keeping backend code outside the public folder prevents direct web access and improves security.
+- Consistent structure avoids confusion and errors like undefined methods or duplicate classes.
 
-# Additional Standardization Requirement: Required Field Indicators
-- For any page with required fields, include a red asterisk next to the label to visually indicate the field is required. The asterisk should be styled consistently (e.g., using a CSS class such as `.required` with a red color).
-- When a required field is not filled, display the message: "Please fill in all required fields." This message should be shown in a clear and visible manner, matching the style and behavior of the customer-edit page.
+## Troubleshooting
+- If you get errors about undefined methods or missing classes, check for duplicate files and ensure all includes use the correct path.
+
+---
+
+## Centralized Validation Logic
+- All server-side validation logic (e.g., email, phone number) must be placed in `/includes/validation.php`.
+- Use the constants defined in `validation.php` (e.g., `EMAIL_PATTERN`, `PHONE_PATTERN`) for HTML `pattern` attributes in forms.
+- Use the functions in `validation.php` (e.g., `is_valid_email`, `is_valid_phone`) for server-side validation in all PHP scripts.
+- Always require/include `validation.php` in any PHP file that performs validation for consistency.
+
+---
+
+## UI Consistency Guidelines
+
+### Tables and Lists
+- When adding a new table (for listing data), use the same HTML structure, Bootstrap classes, and output escaping as in `customer-list.php`.
+- For paginated lists, **always use the same pagination logic, GET parameters, page size selector, and Bootstrap pagination bar as in `customer-list.php`**. This includes:
+  - Calculating page, pageSize, offset, and totalPages in PHP
+  - Fetching only the relevant records for the current page
+  - Displaying a page size selector (`<select name="pageSize">`) and navigation bar
+  - Ensuring the UI and code structure match `customer-list.php` for all list pages (e.g., transport-list.php, pouch-list.php, etc.)
+- Always use `<table class="table table-bordered table-hover mb-0">` and wrap tables in a responsive `<div class="table-responsive">`.
+- Escape all output using `htmlspecialchars()` to prevent XSS.
+
+### Required Fields in Forms
+- For every required field in any form, always display the message "Please fill out this field." using a Bootstrap `invalid-feedback` element directly below the field. This applies to all add/edit forms (e.g., customer-edit.php, transport-edit.php, etc.).
+- Use the HTML5 `required` attribute for all required fields.
+- Ensure the error message is visible when the field is invalid, matching the pattern used in customer-edit.php and transport-edit.php.
+- Maintain consistent styling and placement for required field messages across all forms in the project.
+- When adding required fields to forms, use the same validation logic, error messaging, and field styling as in `customer-edit.php`.
+- Display error messages clearly above or near the form.
+- Highlight required fields and errors using Bootstrap classes (e.g., `is-invalid`, `text-danger`).
+- Use server-side validation to check for required fields and display appropriate error messages.
+
+### Dropdowns
+- Always include a default "Select" option as the first option in any new dropdown (`<select>`) added to the project. This option should have an empty value (`value=""`) and be selected by default when adding new records.
+- The label should clearly indicate what is being selected (e.g., "Select Firm", "Select Gender").
+- Ensure this is consistent for all dropdowns in add/edit forms, including those for locations, users, types, etc.
+- When editing, pre-select the correct value if available; otherwise, default to the "Select" option.
+
+---
+
+## PHP Coding Standards
+
+- Always define global/shared variables at the top of each PHP file to avoid undefined variable warnings and improve code clarity. For variables only used in a specific scope, define them near their usage.
+- Follow consistent naming conventions for variables, functions, and classes.
+- Use meaningful and descriptive names for all identifiers.
+- Write comments and PHPDoc blocks for all functions, classes, and complex code sections.
+- Maintain consistent indentation and spacing throughout the code.
+- Use `===` and `!==` for comparisons to avoid type juggling issues.
+- Sanitize and validate all external inputs (e.g., GET/POST data, file uploads) to prevent security vulnerabilities.
+
+---
+**Always follow this structure and these UI guidelines for all future development.**

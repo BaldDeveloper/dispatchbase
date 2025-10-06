@@ -1,24 +1,57 @@
-// ...existing code...
-    /**
-     * Get total count of pouch records
-     */
-    public function getCount() {
-        $stmt = $this->db->prepare('SELECT COUNT(*) FROM pouches');
-        $stmt->execute();
-        return (int)$stmt->fetchColumn();
+<?php
+require_once __DIR__ . '/Database.php';
+
+class PouchData {
+    private Database $db;
+
+    public function __construct(Database $db) {
+        $this->db = $db;
     }
 
-    /**
-     * Get paginated pouch records
-     * @param int $limit
-     * @param int $offset
-     * @return array
-     */
-    public function getPaginated($limit, $offset) {
-        $stmt = $this->db->prepare('SELECT * FROM pouches ORDER BY pouch_id ASC LIMIT :limit OFFSET :offset');
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public function getAll(): array {
+        return $this->db->query("SELECT * FROM pouch ORDER BY pouch_id DESC");
     }
-// ...existing code...
+
+    public function findById(int $pouch_id): ?array {
+        $result = $this->db->query("SELECT * FROM pouch WHERE pouch_id = ?", [$pouch_id]);
+        return $result[0] ?? null;
+    }
+
+    public function findByType(string $pouchType): ?array {
+        $result = $this->db->query("SELECT * FROM pouch WHERE pouch_type = ?", [$pouchType]);
+        return $result[0] ?? null;
+    }
+
+    public function create(string $pouchType): int {
+        return $this->db->insert(
+            "INSERT INTO pouch (pouch_type) VALUES (?)",
+            [$pouchType]
+        );
+    }
+
+    public function update(int $pouch_id, string $pouchType): int {
+        return $this->db->execute(
+            "UPDATE pouch SET pouch_type = ? WHERE pouch_id = ?",
+            [$pouchType, $pouch_id]
+        );
+    }
+
+    public function delete(int $pouch_id): int {
+        return $this->db->execute(
+            "DELETE FROM pouch WHERE pouch_id = ?",
+            [$pouch_id]
+        );
+    }
+
+    public function getPaginated(int $limit, int $offset): array {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $sql = "SELECT * FROM pouch ORDER BY pouch_id DESC LIMIT $limit OFFSET $offset";
+        return $this->db->query($sql);
+    }
+
+    public function getCount(): int {
+        $result = $this->db->query("SELECT COUNT(*) as cnt FROM pouch");
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+}

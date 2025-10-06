@@ -3,6 +3,8 @@
 // This page will be used for adding/editing decedent records.
 $ethnicities = include __DIR__ . '/../includes/ethnicities.php';
 $genders = include __DIR__ . '/../includes/genders.php';
+require_once __DIR__ . '/../database/DecedentData.php';
+require_once __DIR__ . '/../database/Database.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,17 +22,20 @@ $genders = include __DIR__ . '/../includes/genders.php';
                 <label for="first_name">First Name<span style="color:red;">*</span></label><br>
                 <input type="text" id="first_name" name="first_name" class="form-control" required style="width:95%;"
                        value="<?= htmlspecialchars($decedentFirstName ?? '') ?>">
+                <div class="invalid-feedback">Please fill out this field.</div>
             </td>
             <td style="padding:10px;">
                 <label for="last_name">Last Name<span style="color:red;">*</span></label><br>
                 <input type="text" id="last_name" name="last_name" class="form-control" required style="width:95%;"
                        value="<?= htmlspecialchars($decedentLastName ?? '') ?>">
+                <div class="invalid-feedback">Please fill out this field.</div>
             </td>
         </tr>
         <tr>
             <td style="padding:10px;">
-                <label for="ethnicity">Ethnicity</label><br>
+                <label for="ethnicity">Ethnicity<span style="color:red;">*</span></label><br>
                 <select id="ethnicity" name="ethnicity" class="form-control" style="width:95%;">
+                    <option value="" <?= empty($decedentEthnicity) ? 'selected' : '' ?>>Select Ethnicity</option>
                     <?php foreach ($ethnicities as $ethnicity): ?>
                         <option value="<?= htmlspecialchars($ethnicity) ?>" <?= (isset($decedentEthnicity) && $decedentEthnicity === $ethnicity) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($ethnicity) ?>
@@ -39,8 +44,9 @@ $genders = include __DIR__ . '/../includes/genders.php';
                 </select>
             </td>
             <td style="padding:10px;">
-                <label for="gender">Gender</label><br>
+                <label for="gender">Gender<span style="color:red;">*</span></label><br>
                 <select id="gender" name="gender" class="form-control" style="width:95%;">
+                    <option value="" <?= empty($decedentGender) ? 'selected' : '' ?>>Select Gender</option>
                     <?php foreach ($genders as $gender): ?>
                         <option value="<?= htmlspecialchars($gender) ?>" <?= (isset($decedentGender) && $decedentGender === $gender) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($gender) ?>

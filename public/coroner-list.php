@@ -6,8 +6,8 @@
 //     exit;
 // }
 
-require_once 'database/CoronerData.php';
-require_once 'database/Database.php';
+require_once __DIR__ . '/../database/CoronerData.php';
+require_once __DIR__ . '/../database/Database.php';
 
 // Initialize database connection
 $db = new Database();

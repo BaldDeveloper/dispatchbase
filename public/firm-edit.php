@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../includes/account_types.php';
+
 // firm-edit.php
 // This page will be used for adding/editing firm records. Currently empty, but includes a label for testing inclusion.
 ?>
@@ -15,31 +18,39 @@
             <td>
                 <div class="mb-3">
                     <label for="firm_date" class="form-label required">Firm Date</label>
-                    <input type="date" class="form-control" id="firm_date" name="firm_date" required
-                           value="<?= htmlspecialchars($firmDate ?? '') ?>"/>
+                    <input type="date" class="form-control" id="firm_date" name="firm_date"
+                           value="<?= htmlspecialchars($firmDate ?? '') ?>" required />
                 </div>
             </td>
             <td>
                 <div class="mb-3">
-                    <label for="firm_id" class="form-label required">Firm</label>
-                    <select class="form-control" id="firm_id" name="firm_id" required>
+                    <label for="customer_id" class="form-label required">Firm</label>
+                    <select class="form-control" id="customer_id" name="customer_id" required>
                         <option value="">Select Firm</option>
                         <?php foreach ($customers as $customer): ?>
-                            <option value="<?= htmlspecialchars($customer['customer_number']) ?>" <?= ($firmId == $customer['customer_number']) ? 'selected' : '' ?>>
+                            <option value="<?= htmlspecialchars($customer['customer_number']) ?>" <?= ($customerId == $customer['customer_number']) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($customer['company_name']) ?>
                                 (<?= htmlspecialchars($customer['customer_number']) ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <div class="invalid-feedback">Please fill out this field.</div>
                 </div>
             </td>
         </tr>
         <tr>
             <td>
                 <div class="mb-3">
-                    <label for="firm_account_type" class="form-label required">Firm Account Type</label>
-                    <input type="text" class="form-control" id="firm_account_type" name="firm_account_type"
-                           maxlength="50" required value="<?= htmlspecialchars($firmAccountType ?? '') ?>"/>
+                    <label for="account_type" class="form-label required">Account Type</label>
+                    <select class="form-control" id="account_type" name="account_type" required>
+                        <option value="">Select Account Type</option>
+                        <?php foreach ($ACCOUNT_TYPES as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>" <?= ($accountType == $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="invalid-feedback">Please fill out this field.</div>
                 </div>
             </td>
             <td>
@@ -49,4 +60,3 @@
     </table>
     <!-- Add other fields as needed -->
 </div>
-

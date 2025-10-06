@@ -16,8 +16,8 @@
 //     exit;
 // }
 
-require_once 'database/CustomerData.php';
-require_once 'database/Database.php';
+require_once __DIR__ . '/../database/CustomerData.php';
+require_once __DIR__ . '/../database/Database.php';
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;

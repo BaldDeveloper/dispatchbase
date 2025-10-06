@@ -17,10 +17,11 @@
 //     exit;
 // }
 
-require_once 'database/CustomerData.php';
-require_once 'database/Database.php';
+require_once __DIR__ . '/../database/CustomerData.php';
+require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/states.php';
+require_once __DIR__ . '/../includes/validation.php';
 
 $db = new Database();
 $customerRepo = new CustomerData($db);
@@ -35,10 +36,11 @@ $error = '';
  * Validate customer fields for add/edit
  * @return string Error message or empty string if valid
  */
-function validate_customer_fields($companyName, $emailAddress, $city, $state, $states) {
+function validate_customer_fields($companyName, $emailAddress, $city, $state, $states, $phoneNumber) {
     if (!$companyName || !$state || !$emailAddress || !$city) return 'Please fill in all required fields.';
     if (!array_key_exists($state, $states)) return 'Invalid state selected.';
-    if (!filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) return 'Invalid email address.';
+    if (!is_valid_email($emailAddress)) return 'Invalid email address.';
+    if ($phoneNumber !== '' && !is_valid_phone($phoneNumber)) return 'Invalid phone number format.';
     return '';
 }
 
@@ -79,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     $zip = trim($_POST['zip'] ?? '');
 
     // Validate fields
-    $error = validate_customer_fields($companyName, $emailAddress, $city, $state, $states);
+    $error = validate_customer_fields($companyName, $emailAddress, $city, $state, $states, $phoneNumber);
     if (!$error) {
         if ($mode === 'add') {
             try {
@@ -179,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
-                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="\(\d{3}\)\d{3}-\d{4}" autocomplete="off">
+                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="<?= PHONE_PATTERN ?>" autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="row form-section">
@@ -214,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="email_address" class="form-label required">Email Address</label>
-                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="<?= EMAIL_PATTERN ?>">
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">

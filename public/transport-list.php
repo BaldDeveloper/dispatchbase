@@ -1,13 +1,34 @@
 <?php
-require_once 'database/TransportData.php';
-require_once 'database/Database.php';
+require_once __DIR__ . '/../database/TransportData.php';
+require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../database/TransportChargesData.php';
+require_once __DIR__ . '/../database/LocationsData.php';
+
+// Pagination setup
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
+$offset = ($page - 1) * $pageSize;
 
 // Initialize database connection
 $db = new Database();
 $transportRepo = new TransportData($db);
+$chargesRepo = new TransportChargesData($db);
+$locationsData = new LocationsData($db);
 
 // Fetch all transport logs
-$transports = $transportRepo->getAll() ?? [];
+if (method_exists($transportRepo, 'getCount')) {
+    $totalTransports = $transportRepo->getCount();
+} else {
+    $allTransports = $transportRepo->getAll() ?? [];
+    $totalTransports = is_array($allTransports) ? count($allTransports) : 0;
+}
+$transports = method_exists($transportRepo, 'getPaginated') ? $transportRepo->getPaginated($pageSize, $offset) : array_slice($transportRepo->getAll() ?? [], $offset, $pageSize);
+$totalPages = ceil($totalTransports / $pageSize);
+$allLocations = $locationsData->getAllLocations();
+$locationNames = [];
+foreach ($allLocations as $loc) {
+    $locationNames[$loc['id']] = $loc['name'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,48 +66,73 @@ $transports = $transportRepo->getAll() ?? [];
                     <div class="card mb-4 w-100">
                         <div class="card-header">Transport Entries</div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover mb-0">
-                                    <thead class="table-light">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Firm ID</th>
-                                        <th>From</th>
-                                        <th>To</th>
-                                        <th>Deceased First Name</th>
-                                        <th>Deceased Last Name</th>
-                                        <th>Edit</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php foreach ($transports as $t): ?>
+                            <div class="dataTables_wrapper dt-bootstrap5">
+                                <div class="row mb-3">
+                                    <div class="col-sm-12 col-md-6">
+                                        <form method="get" class="d-inline">
+                                            <label for="pageSize" class="form-label mb-0 me-2">Show</label>
+                                            <select id="pageSize" name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="10"<?= $pageSize == 10 ? ' selected' : '' ?>>10</option>
+                                                <option value="25"<?= $pageSize == 25 ? ' selected' : '' ?>>25</option>
+                                                <option value="50"<?= $pageSize == 50 ? ' selected' : '' ?>>50</option>
+                                                <option value="100"<?= $pageSize == 100 ? ' selected' : '' ?>>100</option>
+                                            </select>
+                                        </form>
+                                    </div>
+                                    <div class="col-sm-12 col-md-6 text-end">
+                                        <!-- Search box placeholder for future implementation -->
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover mb-0">
+                                        <thead class="table-light">
                                         <tr>
-                                            <td><?= htmlspecialchars($t['firm_date'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($t['firm_id'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($t['origin_location'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($t['destination_location'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($t['decedent_first_name'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($t['decedent_last_name'] ?? '') ?></td>
-                                            <td><a href="transport-edit.php?mode=edit&id=<?= urlencode($t['transport_id']) ?>">Edit</a></td>
+                                            <th>Transport ID</th>
+                                            <th>Date</th>
+                                            <th>Firm ID</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Deceased First Name</th>
+                                            <th>Deceased Last Name</th>
+                                            <th>Mileage</th>
+                                            <th>Total Charges</th>
                                         </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($transports)): ?>
-                                        <tr>
-                                            <td colspan="7" class="text-danger">No transport logs found.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="mt-3 d-flex justify-content-between align-items-center">
-                                <div>Showing 1 to <?= count($transports) ?> of <?= count($transports) ?></div>
-                                <nav>
-                                    <ul class="pagination mb-0">
-                                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-                                    </ul>
-                                </nav>
+                                        </thead>
+                                        <tbody>
+                                        <?php foreach ($transports as $t):
+                                        $charges = $chargesRepo->findByTransportId($t['transport_id']) ?? [];
+                                        ?>
+                                            <tr>
+                                                <td><a href="transport-edit.php?mode=edit&id=<?= urlencode($t['transport_id']) ?>"><?= htmlspecialchars($t['transport_id']) ?></a></td>
+                                                <td><?= htmlspecialchars($t['firm_date'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($t['customer_id'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($locationNames[$t['origin_location']] ?? 'Unknown') ?></td>
+                                                <td><?= htmlspecialchars($locationNames[$t['destination_location']] ?? 'Unknown') ?></td>
+                                                <td><?= htmlspecialchars($t['decedent_first_name'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($t['decedent_last_name'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($t['mileage'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($charges['total_charge'] ?? '') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($transports)): ?>
+                                            <tr>
+                                                <td colspan="9" class="text-danger">No transport logs found.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3">
+                                    <nav aria-label="Transport list pagination" class="mt-3">
+                                        <ul class="pagination justify-content-center">
+                                            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                                <li class="page-item<?= $i == $page ? ' active' : '' ?>">
+                                                    <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>"><?= $i ?></a>
+                                                </li>
+                                            <?php endfor; ?>
+                                        </ul>
+                                    </nav>
+                                </div>
                             </div>
                         </div>
                     </div>
