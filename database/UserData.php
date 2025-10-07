@@ -20,19 +20,25 @@ class UserData {
     }
 
     // Create a new user
-    public function create(string $name, string $email, string $role, ?string $phone = null, ?string $password = null): int {
+    public function create(string $username, string $password_hash, string $full_name, ?string $address = null, ?string $city = null, ?string $state = null, ?string $zip_code = null, ?string $phone_number = null, string $role = 'other', int $is_active = 1): int {
         return $this->db->insert(
-            "INSERT INTO users (name, email, role, phone, password) VALUES (?, ?, ?, ?, ?)",
-            [$name, $email, $role, $phone, $password]
+            "INSERT INTO users (username, password_hash, full_name, address, city, state, zip_code, phone_number, role, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$username, $password_hash, $full_name, $address, $city, $state, $zip_code, $phone_number, $role, $is_active]
         );
     }
 
     // Update an existing user
-    public function update(int $id, string $name, string $email, string $role, ?string $phone = null, ?string $password = null): int {
-        return $this->db->execute(
-            "UPDATE users SET name = ?, email = ?, role = ?, phone = ?, password = ? WHERE id = ?",
-            [$name, $email, $role, $phone, $password, $id]
-        );
+    public function update(int $id, string $username, ?string $password_hash, string $full_name, ?string $address = null, ?string $city = null, ?string $state = null, ?string $zip_code = null, ?string $phone_number = null, string $role = 'other', int $is_active = 1): int {
+        $setPassword = $password_hash ? ", password_hash = ?" : "";
+        $params = [$username, $full_name, $address, $city, $state, $zip_code, $phone_number, $role, $is_active];
+        $sql = "UPDATE users SET username = ?, full_name = ?, address = ?, city = ?, state = ?, zip_code = ?, phone_number = ?, role = ?, is_active = ?";
+        if ($password_hash) {
+            $sql .= ", password_hash = ?";
+            $params[] = $password_hash;
+        }
+        $sql .= " WHERE id = ?";
+        $params[] = $id;
+        return $this->db->execute($sql, $params);
     }
 
     // Delete a user
@@ -43,5 +49,26 @@ class UserData {
     // Get all drivers (users with role = 'driver')
     public function getDrivers(): array {
         return $this->db->query("SELECT * FROM users WHERE role = 'driver' ORDER BY username ASC");
+    }
+
+    // Returns the total number of users in the table
+    public function getCount(): int {
+        $result = $this->db->query("SELECT COUNT(*) AS cnt FROM users");
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    // Returns a paginated list of users
+    public function getPaginated(int $limit, int $offset): array {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        return $this->db->query(
+            "SELECT * FROM users ORDER BY id DESC LIMIT $limit OFFSET $offset"
+        );
+    }
+
+    // Checks if a user with the given username exists
+    public function existsByName(string $username): bool {
+        $result = $this->db->query("SELECT id FROM users WHERE username = ? LIMIT 1", [$username]);
+        return !empty($result);
     }
 }
