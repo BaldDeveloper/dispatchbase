@@ -1,17 +1,24 @@
 <?php
-require_once __DIR__ . '/../database/PouchData.php';
+/**
+ * Location List Page
+ *
+ * - Displays a paginated list of locations
+ * - Output escaping for XSS prevention
+ * - UI and code structure matches customer-list.php
+ */
+require_once __DIR__ . '/../database/LocationsData.php';
 require_once __DIR__ . '/../database/Database.php';
-
-$db = new Database();
-$pouchRepo = new PouchData($db);
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
-$totalPouches = $pouchRepo->getCount();
-$totalPages = $pageSize > 0 ? (int)ceil($totalPouches / $pageSize) : 1;
-$pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
+
+// Initialize database connection
+$locationRepo = new LocationsData();
+$totalLocations = $locationRepo->getCount();
+$locations = $locationRepo->getPaginated($pageSize, $offset) ?? [];
+$totalPages = ceil($totalLocations / $pageSize);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,7 +28,7 @@ $pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Pouch Types - DispatchBase</title>
+    <title>Location List - DispatchBase</title>
     <link href="css/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -37,17 +44,15 @@ $pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
             <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
                 <div class="container-xl px-4">
                     <div class="page-header-content pt-4">
-                        <div class="row align-items-center justify-content-between">
-                        </div>
+                        <div class="row align-items-center justify-content-between"></div>
                     </div>
                 </div>
             </header>
-
             <!-- Main page content-->
             <div class="container-xl px-4 mt-n-custom-6">
                 <div id="default">
                     <div class="card mb-4 w-100">
-                        <div class="card-header">Pouch Types</div>
+                        <div class="card-header">Location Details</div>
                         <div class="card-body">
                             <div class="dataTables_wrapper dt-bootstrap5">
                                 <div class="row mb-3">
@@ -63,7 +68,6 @@ $pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <!-- Search box UI only, backend search not implemented yet -->
                                         <label>
                                             Search:
                                             <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
@@ -74,31 +78,45 @@ $pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
                                     <table class="table table-bordered table-hover mb-0">
                                         <thead class="table-light">
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Pouch Type</th>
+                                            <th>Location ID</th>
+                                            <th>Name</th>
+                                            <th>Address</th>
+                                            <th>City</th>
+                                            <th>State</th>
+                                            <th>Zip Code</th>
+                                            <th>Phone Number</th>
+                                            <th>Location Type</th>
+                                            <th>Created At</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <?php foreach ($pouches as $pouch): ?>
+                                        <?php foreach ($locations as $loc): ?>
                                             <tr>
-                                                <td><a href="pouch-edit.php?mode=edit&id=<?= htmlspecialchars($pouch['pouch_id'] ?? '') ?>"><?= htmlspecialchars($pouch['pouch_id'] ?? '') ?></a></td>
-                                                <td><?= htmlspecialchars($pouch['pouch_type'] ?? '') ?></td>
+                                                <td><a href="location-edit.php?mode=edit&id=<?= htmlspecialchars($loc['id']) ?>"><?= htmlspecialchars($loc['id']) ?></a></td>
+                                                <td><?= htmlspecialchars($loc['name'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['address'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['city'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['state'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['zip_code'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['phone_number'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['location_type'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($loc['created_at'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
-                                        <?php if (empty($pouches)): ?>
+                                        <?php if (empty($locations)): ?>
                                             <tr>
-                                                <td colspan="2" class="text-danger">No pouch types found.</td>
+                                                <td colspan="9" class="text-danger">No locations found.</td>
                                             </tr>
                                         <?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
                                 <!-- Pagination controls -->
-                                <nav aria-label="Pouch list pagination" class="mt-3">
+                                <nav aria-label="Location list pagination" class="mt-3">
                                     <ul class="pagination justify-content-center">
-                                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                                            <li class="page-item<?= $i == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>"><?= $i ?></a>
+                                        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                                            <li class="page-item<?= $p == $page ? ' active' : '' ?>">
+                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>"><?= $p ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul>
@@ -149,3 +167,4 @@ $pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
 </script>
 </body>
 </html>
+

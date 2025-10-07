@@ -15,11 +15,11 @@ $coronerRepository = new CoronerData($db);
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
-$offset = ($page - 1) * $limit;
+$pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
+$offset = ($page - 1) * $pageSize;
 $totalCoroners = $coronerRepository->getCount();
-$totalPages = $limit > 0 ? (int)ceil($totalCoroners / $limit) : 1;
-$coroners = $coronerRepository->getPaginated($limit, $offset) ?? [];
+$totalPages = $pageSize > 0 ? (int)ceil($totalCoroners / $pageSize) : 1;
+$coroners = $coronerRepository->getPaginated($pageSize, $offset) ?? [];
 
 ?>
 <!DOCTYPE html>
@@ -59,15 +59,15 @@ $coroners = $coronerRepository->getPaginated($limit, $offset) ?? [];
                             <div class="dataTables_wrapper dt-bootstrap5">
                                 <div class="row mb-3">
                                     <div class="col-sm-12 col-md-6">
-                                        <label>
+                                        <form method="get" class="d-inline">
                                             Show
-                                            <select name="entries_length" aria-controls="entries" class="form-select form-select-sm" onchange="window.location.href='?limit='+this.value">
-                                                <option value="10"<?= $limit == 10 ? ' selected' : '' ?>>10</option>
-                                                <option value="25"<?= $limit == 25 ? ' selected' : '' ?>>25</option>
-                                                <option value="50"<?= $limit == 50 ? ' selected' : '' ?>>50</option>
-                                                <option value="100"<?= $limit == 100 ? ' selected' : '' ?>>100</option>
+                                            <select name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="10"<?= $pageSize == 10 ? ' selected' : '' ?>>10</option>
+                                                <option value="25"<?= $pageSize == 25 ? ' selected' : '' ?>>25</option>
+                                                <option value="50"<?= $pageSize == 50 ? ' selected' : '' ?>>50</option>
+                                                <option value="100"<?= $pageSize == 100 ? ' selected' : '' ?>>100</option>
                                             </select>
-                                        </label>
+                                        </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
                                         <!-- Search box UI only, backend search not implemented yet -->
@@ -109,17 +109,11 @@ $coroners = $coronerRepository->getPaginated($limit, $offset) ?? [];
                                 <!-- Pagination controls -->
                                 <nav aria-label="Coroner list pagination" class="mt-3">
                                     <ul class="pagination justify-content-center">
-                                        <li class="page-item<?= $page <= 1 ? ' disabled' : '' ?>">
-                                            <a class="page-link" href="?page=<?= $page - 1 ?>&limit=<?= $limit ?>" tabindex="-1">Previous</a>
-                                        </li>
                                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                             <li class="page-item<?= $i == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $i ?>&limit=<?= $limit ?>"><?= $i ?></a>
+                                                <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>"><?= $i ?></a>
                                             </li>
                                         <?php endfor; ?>
-                                        <li class="page-item<?= $page >= $totalPages ? ' disabled' : '' ?>">
-                                            <a class="page-link" href="?page=<?= $page + 1 ?>&limit=<?= $limit ?>">Next</a>
-                                        </li>
                                     </ul>
                                 </nav>
                             </div> <!-- /.dataTables_wrapper -->
