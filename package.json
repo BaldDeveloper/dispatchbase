@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "start http://localhost:8000/index.php && php -S localhost:8000 -t public"
+    "start": "start http://localhost:8000/index.html && php -S localhost:8000 -t public"
   },
   "keywords": [],
   "author": "",

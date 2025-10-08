@@ -17,7 +17,6 @@ require_once __DIR__ . '/../database/CoronerData.php';
 require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/validation.php';
-require_once __DIR__ . '/../includes/auth.php';
 
 // Enforce admin-only access
 //if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {

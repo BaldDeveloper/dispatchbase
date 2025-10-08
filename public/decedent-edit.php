@@ -5,7 +5,6 @@ $ethnicities = include __DIR__ . '/../includes/ethnicities.php';
 $genders = include __DIR__ . '/../includes/genders.php';
 require_once __DIR__ . '/../database/DecedentData.php';
 require_once __DIR__ . '/../database/Database.php';
-require_once __DIR__ . '/../includes/auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,4 +1,3 @@
-<?php require_once __DIR__ . '/../includes/auth.php'; ?>
 <?php
 // charges-edit.php
 // This page will be used as a section in transport-edit.php for editing/adding transport charges.

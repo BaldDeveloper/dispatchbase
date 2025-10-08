@@ -9,7 +9,6 @@ require_once __DIR__ . '/../database/CoronerData.php';
 require_once __DIR__ . '/../database/PouchData.php';
 require_once __DIR__ . '/../database/UserData.php';
 require_once __DIR__ . '/../database/TransportChargesData.php';
-require_once __DIR__ . '/../includes/auth.php';
 
 $db = new Database();
 $transportRepo = new TransportData($db);

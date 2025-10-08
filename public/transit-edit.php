@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../database/TransportData.php';
 require_once __DIR__ . '/../database/Database.php';
-require_once __DIR__ . '/../includes/auth.php';
 
 // transit-edit_old.php
 // This page will be used for adding/editing transit records. Currently empty, but includes a label for testing inclusion.

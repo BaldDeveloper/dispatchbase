@@ -10,7 +10,12 @@
  * NOTE: Role-based access control is currently commented out for development/testing purposes.
  */
 
-require_once __DIR__ . '/../includes/auth.php';
+// session_start();
+// if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+//     header('Location: login.php');
+//     exit;
+// }
+
 require_once __DIR__ . '/../database/CustomerData.php';
 require_once __DIR__ . '/../database/Database.php';
 

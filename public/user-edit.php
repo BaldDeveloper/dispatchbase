@@ -13,7 +13,6 @@ require_once __DIR__ . '/../database/UserData.php';
 require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/validation.php';
-require_once __DIR__ . '/../includes/auth.php';
 
 $db = new Database();
 $userRepo = new UserData($db);

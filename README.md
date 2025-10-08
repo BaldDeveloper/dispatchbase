@@ -41,7 +41,7 @@ DispatchBase is a web application for managing transport services, including cus
    ```
    npm start
    ```
-   - Opens at [http://localhost:8000/index.php](http://localhost:8000/index.php)
+   - Opens at [http://localhost:8000/index.html](http://localhost:8000/index.html)
    - Serves files from the `public` directory
 
 3. To stop the server, press `Ctrl+C` in the terminal.
