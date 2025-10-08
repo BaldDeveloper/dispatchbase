@@ -63,6 +63,8 @@ $error = '';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="js/scripts.js"></script>
 <script src="js/phone-format.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.0/dist/umd/simple-datatables.js" crossorigin="anonymous"></script>
+<script src="js/datatables/datatables-simple-demo.js"></script>
 <script>
     // Dynamically load topnav.html into #topnav
     fetch('topnav.html')
@@ -97,4 +99,3 @@ $error = '';
 </script>
 </body>
 </html>
-

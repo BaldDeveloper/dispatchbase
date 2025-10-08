@@ -8,6 +8,7 @@
  */
 require_once __DIR__ . '/../database/LocationsData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -167,4 +168,3 @@ $totalPages = ceil($totalLocations / $pageSize);
 </script>
 </body>
 </html>
-

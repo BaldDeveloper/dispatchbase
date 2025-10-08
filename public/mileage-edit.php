@@ -3,6 +3,7 @@
 // Section for editing mileage information.
 require_once __DIR__ . '/../database/TransportData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../includes/auth.php';
 ?>
 <div id="mileage-section">
     <div class="container-xl px-1">

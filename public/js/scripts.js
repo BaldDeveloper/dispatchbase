@@ -34,8 +34,20 @@ window.addEventListener('DOMContentLoaded', event => {
         return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    // Initialize sidebar toggle (for static pages)
-    initSidebarToggle();
+    // Dynamically load sidebar and topnav HTML
+    fetch('sidebar.html')
+        .then(response => response.text())
+        .then(html => {
+            const sidebarNav = document.getElementById('layoutSidenav_nav');
+            if (sidebarNav) sidebarNav.innerHTML = html;
+            initSidebarToggle(); // Re-initialize toggle after loading
+        });
+    fetch('topnav.html')
+        .then(response => response.text())
+        .then(html => {
+            const topnav = document.getElementById('topnav');
+            if (topnav) topnav.innerHTML = html;
+        });
 
     // Close side navigation when width < LG
     const sidenavContent = document.body.querySelector('#layoutSidenav_content');
@@ -57,7 +69,7 @@ window.addEventListener('DOMContentLoaded', event => {
     if (activatedPath) {
         activatedPath = activatedPath[0];
     } else {
-        activatedPath = 'index.html';
+        activatedPath = 'index.php';
     }
 
     const targetAnchors = document.body.querySelectorAll('[href="' + activatedPath + '"].nav-link');
@@ -77,6 +89,17 @@ window.addEventListener('DOMContentLoaded', event => {
         }
         targetAnchor.classList.add('active');
     });
+});
+
+// Optional: Log out on tab/browser close for stricter session security
+window.addEventListener('unload', function() {
+    if (navigator.sendBeacon) {
+        navigator.sendBeacon('logout.php');
+    } else {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'logout.php', false);
+        xhr.send();
+    }
 });
 
 // Common email pattern (RFC 5322 simplified)

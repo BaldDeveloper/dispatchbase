@@ -19,6 +19,12 @@ class UserData {
         return $result[0] ?? null;
     }
 
+    // Get user by username
+    public function findByUsername(string $username): ?array {
+        $result = $this->db->query("SELECT * FROM users WHERE username = ?", [$username]);
+        return $result[0] ?? null;
+    }
+
     // Create a new user
     public function create(string $username, string $password_hash, string $full_name, ?string $address = null, ?string $city = null, ?string $state = null, ?string $zip_code = null, ?string $phone_number = null, string $role = 'other', int $is_active = 1): int {
         return $this->db->insert(

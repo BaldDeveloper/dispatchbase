@@ -8,6 +8,7 @@
 
 require_once __DIR__ . '/../database/CoronerData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Initialize database connection
 $db = new Database();

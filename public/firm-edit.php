@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../includes/account_types.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // firm-edit.php
 // This page will be used for adding/editing firm records. Currently empty, but includes a label for testing inclusion.
