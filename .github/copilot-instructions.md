@@ -34,9 +34,11 @@
 
 ## Centralized Validation Logic
 - All server-side validation logic (e.g., email, phone number) must be placed in `/includes/validation.php`.
-- Use the constants defined in `validation.php` (e.g., `EMAIL_PATTERN`, `PHONE_PATTERN`) for HTML `pattern` attributes in forms.
-- Use the functions in `validation.php` (e.g., `is_valid_email`, `is_valid_phone`) for server-side validation in all PHP scripts.
+- Use the constants defined in `validation.php` (e.g., `EMAIL_PATTERN`, `PHONE_PATTERN`) for HTML `pattern` attributes in forms. Reference these constants directly in the form markup to ensure consistency between client and server validation.
+- Use the functions in `validation.php` (e.g., `is_valid_email`, `is_valid_phone`) for server-side validation in all PHP scripts. Always call these functions from a dedicated validation function (e.g., `validate_customer_fields`) in each form handler.
 - Always require/include `validation.php` in any PHP file that performs validation for consistency.
+- Sanitize and trim all input values before validation.
+- Display error messages returned from validation clearly above or near the form, and highlight invalid fields using Bootstrap classes (e.g., `is-invalid`).
 
 ---
 
@@ -55,12 +57,14 @@
 ### Required Fields in Forms
 - For every required field in any form, always display the message "Please fill out this field." using a Bootstrap `invalid-feedback` element directly below the field. This applies to all add/edit forms (e.g., customer-edit.php, transport-edit.php, etc.).
 - Use the HTML5 `required` attribute for all required fields.
+- Use the appropriate `pattern` attribute referencing validation constants for fields like email and phone.
 - Ensure the error message is visible when the field is invalid, matching the pattern used in customer-edit.php and transport-edit.php.
 - Maintain consistent styling and placement for required field messages across all forms in the project.
 - When adding required fields to forms, use the same validation logic, error messaging, and field styling as in `customer-edit.php`.
 - Display error messages clearly above or near the form.
 - Highlight required fields and errors using Bootstrap classes (e.g., `is-invalid`, `text-danger`).
 - Use server-side validation to check for required fields and display appropriate error messages.
+- After a successful add, always clear all form fields and display a success message, so the form is ready for a new entry.
 
 ### Dropdowns
 - Always include a default "Select" option as the first option in any new dropdown (`<select>`) added to the project. This option should have an empty value (`value=""`) and be selected by default when adding new records.
