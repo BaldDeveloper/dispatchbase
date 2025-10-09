@@ -82,3 +82,8 @@
 
 ---
 **Always follow this structure and these UI guidelines for all future development.**
+
+## Form Reset on Successful Add
+- Whenever adding a new row to the data for any table (e.g., customer, coroner, transport, etc.), **clear all form fields after a successful add** so the form is ready for a new entry. This should be the default behavior unless explicitly told otherwise by the user.
+- The success message should still be displayed after the add.
+- This applies to all add forms in the project for consistency and improved user experience.

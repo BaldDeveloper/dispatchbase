@@ -29,40 +29,70 @@ DispatchBase is a web application for managing transport services, including cus
 
 ## Setup Instructions
 ### Prerequisites
+
+# DispatchBase
+
+DispatchBase is a web-based mortuary dispatch management system for coroners, funeral homes, and transport firms. It streamlines the process of tracking decedents, transports, pouches, and charges, with robust user management and audit logging.
+
+## Features
+
+- Customer, decedent, and transport management
+- Pouch and transport charge tracking
+- User roles: Admin, Coroner, Firm, Driver
+- Secure authentication and session management
+- Audit logging for all changes
+- Responsive, mobile-friendly UI
+- Modular navigation and footer (dynamically loaded)
+
+## Tech Stack
+
+- **Frontend:** HTML, CSS, JavaScript, Bootstrap
+- **Backend:** PHP (business logic, database access), Node.js (static file server for development)
+- **Database:** MySQL (via PHP PDO)
+
+## Directory Structure
+
+- `/public/`: All files directly accessible by the web server (HTML, JS, CSS, entry-point PHP files)
+- `/database/`: PHP files for database access and business logic (never accessible directly)
+- `/includes/`: Shared PHP includes (validation, config, etc.)
+- `/docs/`: Project documentation
+
+## Validation & Security
+
+- All server-side validation logic is centralized in [`includes/validation.php`](includes/validation.php).
+- Backend PHP files are kept outside the public directory for security.
+- Navigation and footer are modular and loaded dynamically into each page.
+- CSRF protection and input validation are enforced.
+- Passwords are hashed using bcrypt.
+
+## Setup Instructions
+
+### Prerequisites
 - PHP installed (`php -v`)
 - Node.js and npm installed (`node -v`, `npm -v`)
+- MySQL server
 
 ### Running Locally
-1. Open a terminal and navigate to the project root:
+1. Install dependencies:
+   ```bash
+   npm install
    ```
-   cd "C:\Users\baldd\OneDrive\Documents\Dispatch Base\Web Application\Repositories\dispatchbase"
+2. Start the static server:
+   ```bash
+   node server.js
    ```
-2. Start the server:
-   ```
-   npm start
-   ```
-   - Opens at [http://localhost:8000/index.html](http://localhost:8000/index.html)
-   - Serves files from the `public` directory
+    - Opens at [http://localhost:3000/index.php](http://localhost:3000/index.php)
+    - Serves files from the `public` directory
 
-3. To stop the server, press `Ctrl+C` in the terminal.
+3. Ensure your PHP backend is accessible and configured (e.g., via Apache, Nginx, or PHP built-in server).
 
-### Notes
-- Ensure your `.env` file is in the project root for DB connectivity.
-- For database errors, check `public/database/db_error.log`.
+4. To stop the server, press `Ctrl+C` in the terminal.
 
-## Security Notes
-- CSRF protection is enabled for all forms.
-- Input validation for phone, email, and US state fields matches the customer page across the app.
-- Server-side validation for all critical fields.
-- Passwords are stored securely (ensure best practices in production).
+## Documentation
 
-## Future Plans
-- Enhanced reporting and analytics
-- Improved user management and permissions
-- REST API for integrations
-- Mobile-friendly UI improvements
-- Audit logging and activity tracking
+See the [`docs/`](docs/) folder for architecture and setup details.
 
----
+## License
 
-For more details, see the documentation in the `docs/` folder.
+Copyright (c) 2025 BaldDeveloper
+All rights reserved.
