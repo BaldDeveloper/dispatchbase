@@ -7,8 +7,8 @@
  * - Comments added for maintainability
  * - UI and pagination match customer-list.php
  */
-require_once __DIR__ . '/../database/UserData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/UserService.php';
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -17,11 +17,11 @@ $offset = ($page - 1) * $pageSize;
 
 // Initialize database connection
 $db = new Database();
-$userRepo = new UserData($db);
+$userService = new UserService($db);
 
 // Fetch paginated users
-$totalUsers = $userRepo->getCount();
-$users = $userRepo->getPaginated($pageSize, $offset) ?? [];
+$totalUsers = $userService->getCount();
+$users = $userService->getPaginated($pageSize, $offset) ?? [];
 $totalPages = ceil($totalUsers / $pageSize);
 ?>
 <!DOCTYPE html>
@@ -62,8 +62,8 @@ $totalPages = ceil($totalUsers / $pageSize);
                                 <div class="row mb-3">
                                     <div class="col-sm-12 col-md-6">
                                         <form method="get" class="d-inline">
-                                            Show
-                                            <select name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <label for="userPageSize" class="form-label mb-0 me-2">Show</label>
+                                            <select id="userPageSize" name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
                                                 <option value="10"<?= $pageSize == 10 ? ' selected' : '' ?>>10</option>
                                                 <option value="25"<?= $pageSize == 25 ? ' selected' : '' ?>>25</option>
                                                 <option value="50"<?= $pageSize == 50 ? ' selected' : '' ?>>50</option>
@@ -97,7 +97,7 @@ $totalPages = ceil($totalUsers / $pageSize);
                                             <tr>
                                                 <td><a href="user-edit.php?mode=edit&id=<?= htmlspecialchars($user['id'] ?? '') ?>"><?= htmlspecialchars($user['id'] ?? '') ?></a></td>
                                                 <td><?= htmlspecialchars($user['username'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($user['full_name'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($userService->formatDisplayName($user)) ?></td> <!-- Use service for display name -->
                                                 <td><?= htmlspecialchars($user['city'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($user['state'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($user['phone_number'] ?? '') ?></td>
@@ -175,4 +175,3 @@ $totalPages = ceil($totalUsers / $pageSize);
 </script>
 </body>
 </html>
-

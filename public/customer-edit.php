@@ -3,29 +3,29 @@
  * Customer Edit Page
  *
  * - Handles add, edit, and delete of customer records
- * - Uses repository for all DB access
+ * - Uses service for all DB access
  * - CSRF protection and output escaping for security
  * - Validation logic extracted for maintainability
  * - Comments added for clarity
  * - Role-based access control can be added if needed
  *
  * NOTE: Role-based access control is currently commented out for development/testing purposes.
+ * Uncomment when ready for production.
  */
 // session_start();
-// if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+// if (!isset(_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 //     header('Location: login.php');
 //     exit;
 // }
 
-require_once __DIR__ . '/../database/CustomerData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/CustomerService.php';
 require_once __DIR__ . '/../includes/csrf.php';
-require_once __DIR__ . '/../includes/states.php';
 require_once __DIR__ . '/../includes/validation.php';
+$states = include __DIR__ . '/../includes/states.php';
 
 $db = new Database();
-$customerRepo = new CustomerData($db);
-$states = include __DIR__ . '/../includes/states.php';
+$customerService = new CustomerService($db);
 
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
@@ -34,6 +34,13 @@ $error = '';
 
 /**
  * Validate customer fields for add/edit
+ *
+ * @param string $companyName
+ * @param string $emailAddress
+ * @param string $city
+ * @param string $state
+ * @param array $states
+ * @param string $phoneNumber
  * @return string Error message or empty string if valid
  */
 function validate_customer_fields($companyName, $emailAddress, $city, $state, $states, $phoneNumber) {
@@ -46,7 +53,7 @@ function validate_customer_fields($companyName, $emailAddress, $city, $state, $s
 
 // If editing, load existing customer data
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $customer = $customerRepo->findByCustomerNumber($id);
+    $customer = $customerService->findByCustomerNumber($id);
     if ($customer) {
         $companyName = $customer['company_name'] ?? '';
         $phoneNumber = $customer['phone_number'] ?? '';
@@ -62,7 +69,7 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Handle delete request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) && $mode === 'edit' && $id) {
     try {
-        $customerRepo->delete($id);
+        $customerService->delete($id);
         $status = 'deleted';
         // Clear form values so form does not show after deletion
         $companyName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
@@ -85,11 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
     if (!$error) {
         if ($mode === 'add') {
             // Prevent duplicate customer names
-            if ($customerRepo->existsByName($companyName)) {
+            if ($customerService->existsByName($companyName)) {
                 $error = 'A customer with this company name already exists.';
             } else {
                 try {
-                    $customerRepo->create(
+                    $customerService->create(
                         $companyName,
                         $phoneNumber,
                         $address1,
@@ -108,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
             }
         } elseif ($mode === 'edit' && $id) {
             try {
-                $customerRepo->update(
+                $customerService->update(
                     $id,
                     $companyName,
                     $phoneNumber,
@@ -179,20 +186,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                             <?php endif; ?>
                             <?php if ($status !== 'deleted'): ?>
                             <form method="POST">
+                                <?php
+                                // csrf_token_field() is defined in includes/csrf.php
+                                csrf_token_field();
+                                ?>
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="company_name" class="form-label required">Company Name</label>
-                                        <input type="text" class="form-control" id="company_name" name="company_name" value="<?= htmlspecialchars($companyName ?? '') ?>" required>
+                                        <input type="text" class="form-control<?= ($error && !$companyName) ? ' is-invalid' : '' ?>" id="company_name" name="company_name" value="<?= htmlspecialchars($companyName ?? '') ?>" required>
+                                        <div class="invalid-feedback">Please fill out this field.</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
-                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="<?= PHONE_PATTERN ?>" autocomplete="off">
+                                        <input type="text" class="form-control<?= ($error && $phoneNumber !== '' && !is_valid_phone($phoneNumber)) ? ' is-invalid' : '' ?>" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="<?= PHONE_PATTERN ?>" autocomplete="off">
+                                        <div class="invalid-feedback">Invalid phone number format.</div>
                                     </div>
                                 </div>
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="address_1" class="form-label required">Address 1</label>
-                                        <input type="text" class="form-control" id="address_1" name="address_1" value="<?= htmlspecialchars($address1 ?? '') ?>" required>
+                                        <input type="text" class="form-control<?= ($error && !$address1) ? ' is-invalid' : '' ?>" id="address_1" name="address_1" value="<?= htmlspecialchars($address1 ?? '') ?>" required>
+                                        <div class="invalid-feedback">Please fill out this field.</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="address_2" class="form-label">Address 2</label>
@@ -202,16 +216,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                 <div class="row form-section">
                                     <div class="col-md-4">
                                         <label for="city" class="form-label required">City</label>
-                                        <input type="text" class="form-control" id="city" name="city" value="<?= htmlspecialchars($city ?? '') ?>" required>
+                                        <input type="text" class="form-control<?= ($error && !$city) ? ' is-invalid' : '' ?>" id="city" name="city" value="<?= htmlspecialchars($city ?? '') ?>" required>
+                                        <div class="invalid-feedback">Please fill out this field.</div>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="state" class="form-label required">State</label>
-                                        <select class="form-select" id="state" name="state" required>
+                                        <select class="form-select<?= ($error && !$state) ? ' is-invalid' : '' ?>" id="state" name="state" required>
                                             <option value="">Select State</option>
                                             <?php foreach ($states as $abbr => $name): ?>
                                                 <option value="<?= htmlspecialchars($abbr) ?>" <?= (isset($state) && $state === $abbr) ? 'selected' : '' ?>><?= htmlspecialchars($abbr) ?> - <?= htmlspecialchars($name) ?></option>
                                             <?php endforeach; ?>
                                         </select>
+                                        <div class="invalid-feedback">Please fill out this field.</div>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="zip" class="form-label">Zip</label>
@@ -221,7 +237,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="email_address" class="form-label required">Email Address</label>
-                                        <input type="email" class="form-control email-pattern" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="<?= EMAIL_PATTERN ?>">
+                                        <input type="email" class="form-control email-pattern<?= ($error && !is_valid_email($emailAddress)) ? ' is-invalid' : '' ?>" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="<?= EMAIL_PATTERN ?>">
+                                        <div class="invalid-feedback">Please fill out this field.</div>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">

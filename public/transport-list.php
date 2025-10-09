@@ -1,8 +1,7 @@
 <?php
-require_once __DIR__ . '/../database/TransportData.php';
 require_once __DIR__ . '/../database/Database.php';
-require_once __DIR__ . '/../database/TransportChargesData.php';
-require_once __DIR__ . '/../database/LocationsData.php';
+require_once __DIR__ . '/../services/TransportService.php';
+require_once __DIR__ . '/../services/LocationService.php';
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -11,15 +10,14 @@ $offset = ($page - 1) * $pageSize;
 
 // Initialize database connection
 $db = new Database();
-$transportRepo = new TransportData($db);
-$chargesRepo = new TransportChargesData($db);
-$locationsData = new LocationsData($db);
+$transportService = new TransportService($db);
+$locationService = new LocationService($db);
 
-// Efficient paginated fetch
-$totalTransports = $transportRepo->getCount();
-$transports = $transportRepo->getPaginated($pageSize, $offset);
+// Fetch paginated transports using service
+$totalTransports = $transportService->getCount();
+$transports = $transportService->getPaginated($pageSize, $offset);
 $totalPages = ceil($totalTransports / $pageSize);
-$allLocations = $locationsData->getAllLocations();
+$allLocations = $locationService->getAll();
 $locationNames = [];
 foreach ($allLocations as $loc) {
     $locationNames[$loc['id']] = $loc['name'];
@@ -97,9 +95,7 @@ foreach ($allLocations as $loc) {
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <?php foreach ($transports as $t):
-                                        $charges = $chargesRepo->findByTransportId($t['transport_id']) ?? [];
-                                        ?>
+                                        <?php foreach ($transports as $t): ?>
                                             <tr>
                                                 <td><a href="transport-edit.php?mode=edit&id=<?= urlencode($t['transport_id']) ?>"><?= htmlspecialchars($t['transport_id']) ?></a></td>
                                                 <td><?= htmlspecialchars($t['firm_date'] ?? '') ?></td>
@@ -109,7 +105,7 @@ foreach ($allLocations as $loc) {
                                                 <td><?= htmlspecialchars($t['decedent_first_name'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($t['decedent_last_name'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($t['mileage'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($charges['total_charge'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($t['total_charge'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($transports)): ?>

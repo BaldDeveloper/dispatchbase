@@ -23,3 +23,12 @@ function is_valid_email($email) {
 function is_valid_phone($phone) {
     return preg_match('/^\(\d{3}\)\d{3}-\d{4}$/', $phone);
 }
+
+/**
+ * Validate a name (letters, spaces, hyphens, apostrophes; 1-50 chars)
+ * @param string $name
+ * @return bool
+ */
+function is_valid_name($name) {
+    return is_string($name) && preg_match("/^[a-zA-Z'\-\s]{1,50}$/u", $name);
+}

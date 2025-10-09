@@ -1,23 +1,25 @@
 <?php
 // transport-edit.php
-require_once __DIR__ . '/../database/TransportData.php';
 require_once __DIR__ . '/../database/Database.php';
-require_once __DIR__ . '/../database/DecedentData.php';
+require_once __DIR__ . '/../services/TransportService.php';
+require_once __DIR__ . '/../services/LocationService.php';
+require_once __DIR__ . '/../services/CoronerService.php';
+require_once __DIR__ . '/../services/PouchService.php';
+require_once __DIR__ . '/../services/UserService.php';
+require_once __DIR__ . '/../database/TransportData.php';
 require_once __DIR__ . '/../database/CustomerData.php';
-require_once __DIR__ . '/../database/LocationsData.php';
-require_once __DIR__ . '/../database/CoronerData.php';
-require_once __DIR__ . '/../database/PouchData.php';
-require_once __DIR__ . '/../database/UserData.php';
 require_once __DIR__ . '/../database/TransportChargesData.php';
+require_once __DIR__ . '/../database/DecedentData.php';
 
 $db = new Database();
+$transportService = new TransportService($db);
+$locationService = new LocationService($db);
+$coronerService = new CoronerService($db);
+$pouchService = new PouchService($db);
+$userService = new UserService($db);
 $transportRepo = new TransportData($db);
 $customerRepo = new CustomerData($db);
-$locationsData = new LocationsData($db);
-$coronerData = new CoronerData($db);
-$pouchData = new PouchData($db);
-$userData = new UserData($db);
-$chargesRepo = new TransportChargesData($db);
+$chargesData = new TransportChargesData($db);
 
 $success = false;
 $error = '';
@@ -59,20 +61,20 @@ $departureTime = '';
 $deliveryTime = '';
 
 // Transit section data preparation
-$allLocations = $locationsData->getAllLocations();
+$allLocations = $locationService->getAll();
 $originLocations = array_filter($allLocations, function($loc) {
     return $loc['location_type'] === 'origin' || $loc['location_type'] === 'both';
 });
 $destinationLocations = array_filter($allLocations, function($loc) {
     return $loc['location_type'] === 'destination' || $loc['location_type'] === 'both';
 });
-$coroners = $coronerData->getAll();
-$pouchTypes = $pouchData->getAll();
-$drivers = $userData->getDrivers();
+$coroners = $coronerService->getAll();
+$pouchTypes = $pouchService->getAll();
+$drivers = $userService->getDrivers();
 
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $transport = $transportRepo->findById($id);
-    $charges = $chargesRepo->findByTransportId($id) ?: [
+    $transport = $transportService->findById($id);
+    $charges = $chargesData->findByTransportId($id) ?: [
         'removal_charge' => '',
         'pouch_charge' => '',
         'embalming_charge' => '',
@@ -177,6 +179,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
     $originLocationId = $originLocation;
     $destinationLocationId = $destinationLocation;
     $coronerName = $_POST['coroner'] ?? $coronerName;
+    // If coronerName is an ID (from POST), convert to name for dropdown selection
+    if (!empty($coronerName) && is_array($coroners)) {
+        foreach ($coroners as $coroner) {
+            $coronerId = $coroner['id'] ?? $coroner['coroner_number'] ?? null;
+            if ($coronerId == $_POST['coroner']) {
+                $coronerName = $coroner['coroner_name'];
+                break;
+            }
+        }
+    }
     $pouchType = $_POST['pouch_type'] ?? $pouchType;
     $transitPermitNumber = $_POST['transit_permit_number'] ?? $transitPermitNumber;
     $tagNumber = $_POST['tag_number'] ?? $tagNumber;
@@ -364,6 +376,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_transport']) &
                 }
             }
             $success = true;
+            // Clear form fields after successful add, like customer-edit.php and coroner-edit.php
+            if ($mode !== 'edit') {
+                $customerId = $firmDate = $accountType = $originLocation = $destinationLocation = $permitNumber = $tagNumber = '';
+                $decedentFirstName = $decedentMiddleName = $decedentLastName = $decedentEthnicity = $decedentGender = '';
+                $coronerName = $pouchType = $primaryTransporter = $assistantTransporter = '';
+                $callTime = $arrivalTime = $departureTime = $deliveryTime = '';
+                $removal_charge = $pouch_charge = $embalming_charge = $transport_fees = $cremation_charge = $wait_charge = $mileage_fees = $other_charge_1 = $other_charge_2 = $other_charge_3 = $other_charge_4 = $total_charge = '';
+                $other_charge_1_description = $other_charge_2_description = $other_charge_3_description = $other_charge_4_description = '';
+                $mileage = $mileage_rate = $mileage_total_charge = '';
+                $originLocationId = $destinationLocationId = '';
+                $transitPermitNumber = '';
+            }
         } catch (Exception $e) {
             $error = 'Error saving transport: ' . htmlspecialchars($e->getMessage());
         }

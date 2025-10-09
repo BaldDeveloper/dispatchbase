@@ -3,19 +3,19 @@
  * User Edit Page
  *
  * - Handles add, edit, and delete of user records
- * - Uses repository for all DB access
+ * - Uses service for all DB access
  * - CSRF protection and output escaping for security
  * - Validation logic extracted for maintainability
  * - Comments added for clarity
  * - UI matches customer-edit.php
  */
-require_once __DIR__ . '/../database/UserData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/UserService.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/validation.php';
 
 $db = new Database();
-$userRepo = new UserData($db);
+$userService = new UserService($db);
 
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
@@ -38,7 +38,7 @@ function validate_user_fields($username, $full_name, $role, $roles, $password, $
 
 // If editing, load existing user data
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $user = $userRepo->findById($id);
+    $user = $userService->findById($id);
     if ($user) {
         $username = $user['username'] ?? '';
         $full_name = $user['full_name'] ?? '';
@@ -48,18 +48,15 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $zip_code = $user['zip_code'] ?? '';
         $phone_number = $user['phone_number'] ?? '';
         $role = $user['role'] ?? '';
-        $is_active = isset($user['is_active']) ? (bool)$user['is_active'] : true;
-        $password = '';
     }
 }
 
 // Handle delete request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user']) && $mode === 'edit' && $id) {
     try {
-        $userRepo->delete($id);
+        $userService->delete($id);
         $status = 'deleted';
         $username = $full_name = $address = $city = $state = $zip_code = $phone_number = $role = $password = '';
-        $is_active = true;
     } catch (Exception $e) {
         $error = 'Error deleting user: ' . htmlspecialchars($e->getMessage());
     }
@@ -81,15 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user']) && $mo
     if (!$error) {
         if ($mode === 'add') {
             // Prevent duplicate usernames
-            if ($userRepo->existsByName($username)) {
+            if ($userService->existsByName($username)) {
                 $error = 'A user with this username already exists.';
             } else {
                 try {
                     $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                    $userRepo->create($username, $password_hash, $full_name, $address, $city, $state, $zip_code, $phone_number, $role, $is_active);
+                    $userService->create($username, $password_hash, $full_name, $address, $city, $state, $zip_code, $phone_number, $role, $is_active);
                     $status = 'added';
                     $username = $full_name = $address = $city = $state = $zip_code = $phone_number = $role = $password = '';
-                    $is_active = true;
                 } catch (Exception $e) {
                     $error = 'Error adding user: ' . htmlspecialchars($e->getMessage());
                 }
@@ -97,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user']) && $mo
         } elseif ($mode === 'edit' && $id) {
             try {
                 $password_hash = $password ? password_hash($password, PASSWORD_DEFAULT) : null;
-                $userRepo->update($id, $username, $password_hash, $full_name, $address, $city, $state, $zip_code, $phone_number, $role, $is_active);
+                $userService->update($id, $username, $password_hash, $full_name, $address, $city, $state, $zip_code, $phone_number, $role, $is_active);
                 $status = 'updated';
             } catch (Exception $e) {
                 $error = 'Error updating user: ' . htmlspecialchars($e->getMessage());

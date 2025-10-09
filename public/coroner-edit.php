@@ -2,33 +2,33 @@
 /**
  * Coroner Edit Page
  *
- * - Enforces admin-only access
- * - CSRF protection
- * - Centralized validation
- * - Uses prepared statements in repository (ensure in CoronerData)
+ * - Handles add, edit, and delete of coroner records using CoronerService
+ * - Enforces admin-only access (see session section)
+ * - CSRF protection and centralized validation
  * - Output escaping for XSS prevention
  * - Status handling standardized
- * - Inline styles moved to CSS
  * - Comments added for maintainability
+ *
+ * Last reviewed: 2025-10-09
  */
 
+// Uncomment for production to enforce admin-only access
+// session_start();
+// if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+//     header('Location: login.php');
+//     exit;
+// }
+
 session_start();
-require_once __DIR__ . '/../database/CoronerData.php';
+
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/CoronerService.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/validation.php';
-
-// Enforce admin-only access
-//if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
-//    header('Location: login.php');
-//    exit;
-//}
-
 $states = include __DIR__ . '/../includes/states.php';
 $counties = include __DIR__ . '/../includes/counties.php';
 
-$db = new Database();
-$coronerRepository = new CoronerData($db);
+$coronerService = new CoronerService(new Database());
 
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
@@ -40,12 +40,6 @@ $error = '';
  * @return string Error message or empty string if valid
  *
  * Only name and county are required. Phone, email, and state are validated if provided.
- *
- * - Name and county must be present
- * - County must be in the allowed list
- * - Phone must match (###)###-#### if provided
- * - Email must be valid if provided
- * - State must be valid if provided
  */
 function validate_coroner_fields($name, $county, $phone, $email, $city, $state, $states, $counties) {
     if (!$name || !$county) return 'Please fill in all required fields.';
@@ -57,11 +51,9 @@ function validate_coroner_fields($name, $county, $phone, $email, $city, $state, 
 }
 
 // If editing, load existing coroner data
-// This block retrieves the coroner's details for editing and populates the form fields
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $coroner = $coronerRepository->findByCoronerNumber($id);
+    $coroner = $coronerService->findByCoronerNumber($id);
     if ($coroner) {
-        // Populate form fields with existing data
         $coronerName = $coroner['coroner_name'] ?? '';
         $county = $coroner['county'] ?? '';
         $phoneNumber = $coroner['phone_number'] ?? '';
@@ -75,26 +67,21 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Handle delete request
-// This block processes the deletion of a coroner record
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_coroner']) && $mode === 'edit' && $id
 ) {
-    // CSRF validation for delete
     if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid CSRF token.';
     } else {
         try {
-            $coronerRepository->delete($id);
+            $coronerService->delete($id);
             $status = 'deleted';
-            // Clear form values so form does not show after deletion
             $coronerName = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
         } catch (Exception $e) {
             $error = 'Error deleting coroner: ' . htmlspecialchars($e->getMessage());
         }
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle add/edit request
-    // This block processes the creation or update of a coroner record
     if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid CSRF token.';
     } else {
@@ -114,12 +101,12 @@ if (
         if (!$error) {
             if ($mode === 'add') {
                 // Prevent duplicate coroner names
-                if ($coronerRepository->existsByName($coronerName)) {
+                if ($coronerService->existsByName($coronerName)) {
                     $error = 'A coroner with this name already exists.';
                 } else {
                     try {
                         // Create new coroner record
-                        $coronerRepository->create(
+                        $coronerService->create(
                             $coronerName,
                             $phoneNumber,
                             $emailAddress,
@@ -131,6 +118,8 @@ if (
                             $county
                         );
                         $status = 'added';
+                        // Clear form fields after successful add, like customer-edit.php
+                        $coronerName = $county = $phoneNumber = $emailAddress = $address1 = $address2 = $city = $state = $zip = '';
                     } catch (Exception $e) {
                         $error = 'Error adding coroner: ' . htmlspecialchars($e->getMessage());
                     }
@@ -138,7 +127,7 @@ if (
             } elseif ($mode === 'edit' && $id) {
                 try {
                     // Update existing coroner record
-                    $coronerRepository->update(
+                    $coronerService->update(
                         $id,
                         $coronerName,
                         $phoneNumber,

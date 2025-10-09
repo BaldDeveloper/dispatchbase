@@ -16,8 +16,8 @@
 //     exit;
 // }
 
-require_once __DIR__ . '/../database/CustomerData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/CustomerService.php'; // Use service class only
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -26,11 +26,11 @@ $offset = ($page - 1) * $pageSize;
 
 // Initialize database connection
 $db = new Database();
-$customerRepo = new CustomerData($db);
+$customerService = new CustomerService($db); // Pass db to service if required
 
-// Fetch paginated customers
-$totalCustomers = $customerRepo->getCount();
-$customers = $customerRepo->getPaginated($pageSize, $offset) ?? [];
+// Fetch paginated customers using service
+$totalCustomers = $customerService->getCount();
+$customers = $customerService->getPaginated($pageSize, $offset) ?? [];
 $totalPages = ceil($totalCustomers / $pageSize);
 ?>
 <!DOCTYPE html>
@@ -71,8 +71,9 @@ $totalPages = ceil($totalCustomers / $pageSize);
                                 <div class="row mb-3">
                                     <div class="col-sm-12 col-md-6">
                                         <form method="get" class="d-inline">
+                                            <label for="pageSize" class="visually-hidden">Page size</label>
                                             Show
-                                            <select name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <select id="pageSize" name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
                                                 <option value="10"<?= $pageSize == 10 ? ' selected' : '' ?>>10</option>
                                                 <option value="25"<?= $pageSize == 25 ? ' selected' : '' ?>>25</option>
                                                 <option value="50"<?= $pageSize == 50 ? ' selected' : '' ?>>50</option>
@@ -105,7 +106,7 @@ $totalPages = ceil($totalCustomers / $pageSize);
                                         <?php foreach ($customers as $customer): ?>
                                             <tr>
                                                 <td><a href="customer-edit.php?mode=edit&id=<?= htmlspecialchars($customer['customer_number'] ?? '') ?>"><?= htmlspecialchars($customer['customer_number'] ?? '') ?></a></td>
-                                                <td><?= htmlspecialchars($customer['company_name'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($customerService->formatDisplayName($customer)) ?></td>
                                                 <td><?= htmlspecialchars($customer['address_1'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($customer['city'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($customer['state'] ?? '') ?></td>

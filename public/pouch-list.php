@@ -1,17 +1,17 @@
 <?php
-require_once __DIR__ . '/../database/PouchData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/PouchService.php';
 
 $db = new Database();
-$pouchRepo = new PouchData($db);
+$pouchService = new PouchService($db);
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
-$totalPouches = $pouchRepo->getCount();
+$totalPouches = $pouchService->getCount();
 $totalPages = $pageSize > 0 ? (int)ceil($totalPouches / $pageSize) : 1;
-$pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
+$pouches = $pouchService->getPaginated($pageSize, $offset) ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -81,7 +81,7 @@ $pouches = $pouchRepo->getPaginated($pageSize, $offset) ?? [];
                                         <tbody>
                                         <?php foreach ($pouches as $pouch): ?>
                                             <tr>
-                                                <td><a href="pouch-edit.php?mode=edit&id=<?= htmlspecialchars($pouch['pouch_id'] ?? '') ?>"><?= htmlspecialchars($pouch['pouch_id'] ?? '') ?></a></td>
+                                                <td><a href="pouch-edit.php?mode=edit&id=<?= urlencode($pouch['pouch_id']) ?>"><?= htmlspecialchars($pouch['pouch_id']) ?></a></td>
                                                 <td><?= htmlspecialchars($pouch['pouch_type'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>

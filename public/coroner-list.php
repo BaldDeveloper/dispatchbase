@@ -1,25 +1,32 @@
 <?php
-// Role-based access control: Only allow access if user is admin or staff
+/**
+ * Coroner List Page
+ *
+ * - Displays a paginated list of coroners using CoronerService
+ * - Output escaping for XSS prevention
+ * - UI and pagination match project standards
+ *
+ * Last reviewed: 2025-10-09
+ */
+// Uncomment for production to enforce admin/staff access
 // session_start();
 // if (!isset($_SESSION['user_role']) || !in_array($_SESSION['user_role'], ['admin', 'staff'])) {
 //     header('Location: login.php');
 //     exit;
 // }
 
-require_once __DIR__ . '/../database/CoronerData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/CoronerService.php';
 
-// Initialize database connection
-$db = new Database();
-$coronerRepository = new CoronerData($db);
+$coronerService = new CoronerService(new Database());
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
-$totalCoroners = $coronerRepository->getCount();
+$totalCoroners = $coronerService->getCount();
 $totalPages = $pageSize > 0 ? (int)ceil($totalCoroners / $pageSize) : 1;
-$coroners = $coronerRepository->getPaginated($pageSize, $offset) ?? [];
+$coroners = $coronerService->getPaginated($pageSize, $offset) ?? [];
 
 ?>
 <!DOCTYPE html>
@@ -89,13 +96,13 @@ $coroners = $coronerRepository->getPaginated($pageSize, $offset) ?? [];
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <?php foreach ($coroners as $c): ?>
+                                        <?php foreach ($coroners as $coroner): ?>
                                             <tr>
-                                                <td><a href="coroner-edit.php?mode=edit&id=<?= htmlspecialchars($c['coroner_number'] ?? '') ?>"><?= htmlspecialchars($c['coroner_number'] ?? '') ?></a></td>
-                                                <td><?= htmlspecialchars($c['coroner_name'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($c['phone_number'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($c['email_address'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($c['county'] ?? '') ?></td>
+                                                <td><a href="coroner-edit.php?mode=edit&id=<?= htmlspecialchars($coroner['coroner_number'] ?? '') ?>"><?= htmlspecialchars($coroner['coroner_number'] ?? '') ?></a></td>
+                                                <td><?= htmlspecialchars($coronerService->formatDisplayName($coroner)) ?></td> <!-- Use service for display name -->
+                                                <td><?= htmlspecialchars($coroner['phone_number'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($coroner['email_address'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($coroner['county'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($coroners)): ?>

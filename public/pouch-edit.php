@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . '/../database/PouchData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/PouchService.php';
 
 $db = new Database();
-$pouchRepo = new PouchData($db);
+$pouchService = new PouchService($db);
 
 $mode = $_GET['mode'] ?? 'add';
 $id = $_GET['id'] ?? null;
@@ -12,7 +12,7 @@ $success = false;
 $error = '';
 
 if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $pouch = $pouchRepo->findById((int)$id);
+    $pouch = $pouchService->findById((int)$id);
     if ($pouch) {
         $pouchType = $pouch['pouch_type'] ?? '';
     } else {
@@ -22,7 +22,7 @@ if ($mode === 'edit' && $id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_pouch']) && $mode === 'edit' && $id) {
     try {
-        $pouchRepo->delete((int)$id);
+        $pouchService->delete((int)$id);
         $success = 'deleted';
         $pouchType = '';
     } catch (Exception $e) {
@@ -32,16 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_pouch']) && $m
     $pouchType = trim($_POST['pouch_type'] ?? '');
     if ($pouchType) {
         // Prevent duplicate pouch_type on add
-        if (($mode === 'add' && $pouchRepo->findByType($pouchType)) ||
-            ($mode === 'edit' && $pouchRepo->findByType($pouchType) && $pouchRepo->findByType($pouchType)['pouch_id'] != $id)) {
+        $existing = $pouchService->findByType($pouchType);
+        if (($mode === 'add' && $existing) ||
+            ($mode === 'edit' && $existing && $existing['pouch_id'] != $id)) {
             $error = 'A pouch with this type already exists.';
         } else {
             try {
                 if ($mode === 'edit' && $id) {
-                    $pouchRepo->update((int)$id, $pouchType);
+                    $pouchService->update((int)$id, $pouchType);
                     $success = true;
                 } else {
-                    $pouchRepo->create($pouchType);
+                    $pouchService->create($pouchType);
                     $success = true;
                     $pouchType = '';
                 }
@@ -50,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_pouch']) && $m
             }
         }
     } else {
-        $error = 'Pouch type is required.';
+        $error = 'Please enter a pouch type.';
     }
 }
 ?>

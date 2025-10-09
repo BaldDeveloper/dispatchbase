@@ -3,8 +3,8 @@
 // This page will be used for adding/editing decedent records.
 $ethnicities = include __DIR__ . '/../includes/ethnicities.php';
 $genders = include __DIR__ . '/../includes/genders.php';
-require_once __DIR__ . '/../database/DecedentData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/DecedentService.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">

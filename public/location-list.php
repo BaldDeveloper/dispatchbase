@@ -8,6 +8,7 @@
  */
 require_once __DIR__ . '/../database/LocationsData.php';
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../services/LocationService.php'; // Add service class
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -16,6 +17,7 @@ $offset = ($page - 1) * $pageSize;
 
 // Initialize database connection
 $locationRepo = new LocationsData();
+$locationService = new LocationService(); // Instantiate service
 $totalLocations = $locationRepo->getCount();
 $locations = $locationRepo->getPaginated($pageSize, $offset) ?? [];
 $totalPages = ceil($totalLocations / $pageSize);
@@ -90,17 +92,17 @@ $totalPages = ceil($totalLocations / $pageSize);
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <?php foreach ($locations as $loc): ?>
+                                        <?php foreach ($locations as $location): ?>
                                             <tr>
-                                                <td><a href="location-edit.php?mode=edit&id=<?= htmlspecialchars($loc['id']) ?>"><?= htmlspecialchars($loc['id']) ?></a></td>
-                                                <td><?= htmlspecialchars($loc['name'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['address'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['city'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['state'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['zip_code'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['phone_number'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['location_type'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($loc['created_at'] ?? '') ?></td>
+                                                <td><a href="location-edit.php?mode=edit&id=<?= htmlspecialchars($location['id']) ?>"><?= htmlspecialchars($location['id']) ?></a></td>
+                                                <td><?= htmlspecialchars($locationService->formatDisplayName($location)) ?></td> <!-- Use service for display name -->
+                                                <td><?= htmlspecialchars($location['address'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($location['city'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($location['state'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($location['zip_code'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($location['phone_number'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($location['location_type'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($location['created_at'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($locations)): ?>
@@ -167,4 +169,3 @@ $totalPages = ceil($totalLocations / $pageSize);
 </script>
 </body>
 </html>
-
