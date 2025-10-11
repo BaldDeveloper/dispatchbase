@@ -116,6 +116,26 @@ class UserService {
     }
 
     /**
+     * Get the total number of users matching a search string.
+     * @param string $search
+     * @return int
+     */
+    public function getCountBySearch($search) {
+        return $this->repo->getCountBySearch($search);
+    }
+
+    /**
+     * Get paginated list of users matching a search string.
+     * @param string $search
+     * @param int $pageSize
+     * @param int $offset
+     * @return array
+     */
+    public function searchPaginated($search, $pageSize, $offset) {
+        return $this->repo->searchPaginated($search, $pageSize, $offset);
+    }
+
+    /**
      * Format a user's display name for UI output.
      * Uses full_name if available, otherwise falls back to username.
      *

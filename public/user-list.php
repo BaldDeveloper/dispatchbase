@@ -10,19 +10,25 @@
 require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../services/UserService.php';
 
-// Pagination setup
+// Pagination and search setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Initialize database connection
 $db = new Database();
 $userService = new UserService($db);
 
-// Fetch paginated users
-$totalUsers = $userService->getCount();
-$users = $userService->getPaginated($pageSize, $offset) ?? [];
-$totalPages = ceil($totalUsers / $pageSize);
+// Fetch paginated users (with search)
+if ($search !== '') {
+    $totalUsers = $userService->getCountBySearch($search);
+    $users = $userService->searchPaginated($search, $pageSize, $offset) ?? [];
+} else {
+    $totalUsers = $userService->getCount();
+    $users = $userService->getPaginated($pageSize, $offset) ?? [];
+}
+$totalPages = $pageSize > 0 ? (int)ceil($totalUsers / $pageSize) : 1;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,6 +69,7 @@ $totalPages = ceil($totalUsers / $pageSize);
                                     <div class="col-sm-12 col-md-6">
                                         <form method="get" class="d-inline">
                                             <label for="userPageSize" class="form-label mb-0 me-2">Show</label>
+                                            <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
                                             <select id="userPageSize" name="pageSize" aria-controls="entries" class="form-select form-select-sm" onchange="this.form.submit()">
                                                 <option value="10"<?= $pageSize == 10 ? ' selected' : '' ?>>10</option>
                                                 <option value="25"<?= $pageSize == 25 ? ' selected' : '' ?>>25</option>
@@ -72,10 +79,14 @@ $totalPages = ceil($totalUsers / $pageSize);
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
-                                        </label>
+                                        <form method="get" class="d-inline">
+                                            <label>
+                                                Search:
+                                                <input type="search" name="search" class="form-control form-control-sm" placeholder="Username, Name, City, State, Role, Active" aria-controls="entries" value="<?= htmlspecialchars($search) ?>">
+                                            </label>
+                                            <input type="hidden" name="pageSize" value="<?= $pageSize ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-1">Search</button>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -124,7 +135,7 @@ $totalPages = ceil($totalUsers / $pageSize);
                                     <ul class="pagination justify-content-center">
                                         <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                             <li class="page-item<?= $p == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>"><?= $p ?></a>
+                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul>

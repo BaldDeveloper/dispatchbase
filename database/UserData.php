@@ -71,4 +71,39 @@ class UserData {
         $result = $this->db->query("SELECT id FROM users WHERE username = ? LIMIT 1", [$username]);
         return !empty($result);
     }
+
+    // Get count of users matching search
+    public function getCountBySearch(string $search): int {
+        $like = '%' . $search . '%';
+        $sql = "SELECT COUNT(*) as cnt FROM users WHERE 
+            username LIKE ? OR 
+            full_name LIKE ? OR 
+            city LIKE ? OR 
+            state LIKE ? OR 
+            role LIKE ? OR 
+            (is_active = 1 AND ? IN ('yes','active','1')) OR
+            (is_active = 0 AND ? IN ('no','inactive','0'))
+        ";
+        $params = [$like, $like, $like, $like, $like, strtolower($search), strtolower($search)];
+        $result = $this->db->query($sql, $params);
+        return $result[0]['cnt'] ?? 0;
+    }
+
+    // Get paginated users matching search
+    public function searchPaginated(string $search, int $pageSize, int $offset): array {
+        $like = '%' . $search . '%';
+        $pageSize = max(1, (int)$pageSize);
+        $offset = max(0, (int)$offset);
+        $sql = "SELECT * FROM users WHERE 
+            username LIKE ? OR 
+            full_name LIKE ? OR 
+            city LIKE ? OR 
+            state LIKE ? OR 
+            role LIKE ? OR 
+            (is_active = 1 AND ? IN ('yes','active','1')) OR
+            (is_active = 0 AND ? IN ('no','inactive','0'))
+            ORDER BY id DESC LIMIT $pageSize OFFSET $offset";
+        $params = [$like, $like, $like, $like, $like, strtolower($search), strtolower($search)];
+        return $this->db->query($sql, $params);
+    }
 }

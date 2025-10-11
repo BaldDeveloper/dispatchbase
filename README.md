@@ -63,7 +63,7 @@ DispatchBase is a web-based mortuary dispatch management system for coroners, fu
    ```cmd
    node server.js
    ```
-   - Opens at [http://localhost:3000/index.html](http://localhost:3000/index.html)
+   - Opens at [http://localhost:3000/index.php](http://localhost:3000/index.php)
    - Serves files from the `public` directory
 
 3. Ensure your PHP backend is accessible and configured (e.g., via Apache, Nginx, or PHP built-in server).

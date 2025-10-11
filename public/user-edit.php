@@ -29,6 +29,8 @@ $roles = [
     'other' => 'Other',
 ];
 
+$states = include __DIR__ . '/../includes/states.php';
+
 function validate_user_fields($username, $full_name, $role, $roles, $password, $mode) {
     if (!$username || !$full_name || !$role) return 'Please fill in all required fields.';
     if (!array_key_exists($role, $roles)) return 'Invalid role selected.';
@@ -165,8 +167,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user']) && $mo
                                         <input type="text" class="form-control" id="city" name="city" value="<?= htmlspecialchars($city ?? '') ?>">
                                     </div>
                                     <div class="col-md-3">
-                                        <label for="state" class="form-label">State</label>
-                                        <input type="text" class="form-control" id="state" name="state" value="<?= htmlspecialchars($state ?? '') ?>">
+                                        <label for="state" class="form-label required">State</label>
+                                        <select class="form-select<?= ($error && !$state) ? ' is-invalid' : '' ?>" id="state" name="state" required>
+                                            <option value="">Select State</option>
+                                            <?php foreach ($states as $abbr => $name): ?>
+                                                <option value="<?= htmlspecialchars($abbr) ?>" <?= (isset($state) && $state === $abbr) ? 'selected' : '' ?>><?= htmlspecialchars($abbr) ?> - <?= htmlspecialchars($name) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Please fill out this field.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row form-section">
