@@ -1,7 +1,7 @@
-# DispatchBase
+# Dispatcher
 
 ## Overview
-DispatchBase is a web-based mortuary dispatch management system for coroners, funeral homes, and transport firms. It streamlines the process of tracking decedents, transports, pouches, and charges, with robust user management and audit logging.
+Dispatcher is a web-based management system for coroners, funeral homes, and transport businesses. It streamlines the process of tracking decedents, transports, pouches, and charges, with robust user management and audit logging.
 
 ## Features
 - Customer, coroner, decedent, and transport management
@@ -12,21 +12,23 @@ DispatchBase is a web-based mortuary dispatch management system for coroners, fu
 - US state dropdowns with validation
 - Data tables for easy record browsing
 - CSRF protection for forms
-- Error logging for database operations
+- Error logging for database operations (see `/database/decedent-errors.log`)
 - Audit logging for all changes
 - Responsive, mobile-friendly UI
-- Modular navigation and footer (dynamically loaded)
+- Modular navigation and footer (dynamically loaded via `sidebar.html`, `topnav.html`, `footer.html`)
 
 ## Tech Stack
-- **Frontend:** HTML, CSS, JavaScript, Bootstrap
+- **Frontend:** HTML, CSS, JavaScript, Bootstrap (for UI consistency, tables, and form validation feedback)
 - **Backend:** PHP (business logic, database access), Node.js (static file server for development)
 - **Database:** MySQL (via PHP PDO)
 - **Other Tools:** Node.js (for dev server), npm
 
 ## Directory Structure
 - `/public/`: All files directly accessible by the web server (HTML, JS, CSS, entry-point PHP files)
+  - `/public/assets/`: Static assets (images, fonts, etc.)
 - `/database/`: PHP files for database access and business logic (never accessible directly)
 - `/includes/`: Shared PHP includes (validation, config, etc.)
+  - All server-side validation logic is centralized in [`includes/validation.php`](includes/validation.php)
 - `/services/`: Service layer for business logic
 - `/docs/`: Project documentation
 
@@ -42,15 +44,16 @@ DispatchBase is a web-based mortuary dispatch management system for coroners, fu
 ## Validation & Security
 - All server-side validation logic is centralized in [`includes/validation.php`](includes/validation.php).
 - Backend PHP files are kept outside the public directory for security.
-- Navigation and footer are modular and loaded dynamically into each page.
+- Navigation and footer are modular and loaded dynamically into each page (`sidebar.html`, `topnav.html`, `footer.html`).
 - CSRF protection and input validation are enforced.
 - Passwords are hashed using bcrypt.
 - Output escaping (e.g., `htmlspecialchars`) is used for all user-facing data.
+- Bootstrap classes are used for consistent table and form styling, including validation feedback.
 
 ## Setup Instructions
 
 ### Prerequisites
-- PHP installed (`php -v`)
+- PHP 7.4+ installed (`php -v`)
 - Node.js and npm installed (`node -v`, `npm -v`)
 - MySQL server
 
