@@ -20,13 +20,21 @@ require_once __DIR__ . '/../services/CoronerService.php';
 
 $coronerService = new CoronerService(new Database());
 
-// Pagination setup
+// Pagination and search setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
-$totalCoroners = $coronerService->getCount();
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+if ($search !== '') {
+    $totalCoroners = $coronerService->getCountBySearch($search);
+    $coroners = $coronerService->searchPaginated($search, $pageSize, $offset) ?? [];
+} else {
+    $totalCoroners = $coronerService->getCount();
+    $coroners = $coronerService->getPaginated($pageSize, $offset) ?? [];
+}
+
 $totalPages = $pageSize > 0 ? (int)ceil($totalCoroners / $pageSize) : 1;
-$coroners = $coronerService->getPaginated($pageSize, $offset) ?? [];
 
 ?>
 <!DOCTYPE html>
@@ -77,11 +85,14 @@ $coroners = $coronerService->getPaginated($pageSize, $offset) ?? [];
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <!-- Search box UI only, backend search not implemented yet -->
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
-                                        </label>
+                                        <form method="get" class="d-inline">
+                                            <label>
+                                                Search:
+                                                <input type="search" name="search" class="form-control form-control-sm" placeholder="Coroner name" aria-controls="entries" value="<?= htmlspecialchars($search) ?>">
+                                            </label>
+                                            <input type="hidden" name="pageSize" value="<?= $pageSize ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-1">Search</button>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -118,7 +129,7 @@ $coroners = $coronerService->getPaginated($pageSize, $offset) ?? [];
                                     <ul class="pagination justify-content-center">
                                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                             <li class="page-item<?= $i == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>"><?= $i ?></a>
+                                                <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul>

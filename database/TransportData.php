@@ -178,4 +178,28 @@ class TransportData {
                 LIMIT $pageSize OFFSET $offset";
         return $this->db->query($sql);
     }
+
+    // Returns the total number of transports matching a search term
+    public function getCountBySearch(string $search): int {
+        $like = '%' . strtolower($search) . '%';
+        $sql = "SELECT COUNT(*) as cnt FROM transport t LEFT JOIN decedent d ON t.transport_id = d.transport_id WHERE (LOWER(t.origin_location) LIKE ? OR LOWER(t.destination_location) LIKE ?) OR (LOWER(d.first_name) LIKE ? OR LOWER(d.last_name) LIKE ?)";
+        error_log('[getCountBySearch] SQL: ' . $sql);
+        error_log('[getCountBySearch] PARAMS: ' . json_encode([$like, $like, $like, $like]));
+        $result = $this->db->query(
+            $sql,
+            [$like, $like, $like, $like]
+        );
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    // Returns a paginated list of transports matching a search term
+    public function searchPaginated(string $search, int $limit, int $offset): array {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $like = '%' . strtolower($search) . '%';
+        $sql = "SELECT t.*, d.first_name AS decedent_first_name, d.last_name AS decedent_last_name FROM transport t LEFT JOIN decedent d ON t.transport_id = d.transport_id WHERE (LOWER(t.origin_location) LIKE ? OR LOWER(t.destination_location) LIKE ?) OR (LOWER(d.first_name) LIKE ? OR LOWER(d.last_name) LIKE ?) ORDER BY t.transport_id DESC LIMIT $limit OFFSET $offset";
+        error_log('[searchPaginated] SQL: ' . $sql);
+        error_log('[searchPaginated] PARAMS: ' . json_encode([$like, $like, $like, $like]));
+        return $this->db->query($sql, [$like, $like, $like, $like]);
+    }
 }

@@ -9,9 +9,15 @@ $pouchService = new PouchService($db);
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
-$totalPouches = $pouchService->getCount();
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if ($search !== '') {
+    $totalPouches = $pouchService->getCountBySearch($search);
+    $pouches = $pouchService->searchPaginated($search, $pageSize, $offset) ?? [];
+} else {
+    $totalPouches = $pouchService->getCount();
+    $pouches = $pouchService->getPaginated($pageSize, $offset) ?? [];
+}
 $totalPages = $pageSize > 0 ? (int)ceil($totalPouches / $pageSize) : 1;
-$pouches = $pouchService->getPaginated($pageSize, $offset) ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,11 +69,14 @@ $pouches = $pouchService->getPaginated($pageSize, $offset) ?? [];
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <!-- Search box UI only, backend search not implemented yet -->
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
-                                        </label>
+                                        <form method="get" class="d-inline">
+                                            <label>
+                                                Search:
+                                                <input type="search" name="search" class="form-control form-control-sm" placeholder="Pouch type" aria-controls="entries" value="<?= htmlspecialchars($search) ?>">
+                                            </label>
+                                            <input type="hidden" name="pageSize" value="<?= $pageSize ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-1">Search</button>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -98,7 +107,7 @@ $pouches = $pouchService->getPaginated($pageSize, $offset) ?? [];
                                     <ul class="pagination justify-content-center">
                                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                             <li class="page-item<?= $i == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>"><?= $i ?></a>
+                                                <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul>

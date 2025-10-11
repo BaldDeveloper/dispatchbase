@@ -54,4 +54,20 @@ class PouchData {
         $result = $this->db->query("SELECT COUNT(*) as cnt FROM pouch");
         return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
     }
+
+    // Returns the total number of pouches matching a search term
+    public function getCountBySearch(string $search): int {
+        $like = '%' . $search . '%';
+        $result = $this->db->query("SELECT COUNT(*) as cnt FROM pouch WHERE pouch_type LIKE ?", [$like]);
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    // Returns a paginated list of pouches matching a search term
+    public function searchPaginated(string $search, int $limit, int $offset): array {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $like = '%' . $search . '%';
+        $sql = "SELECT * FROM pouch WHERE pouch_type LIKE ? ORDER BY pouch_id DESC LIMIT $limit OFFSET $offset";
+        return $this->db->query($sql, [$like]);
+    }
 }

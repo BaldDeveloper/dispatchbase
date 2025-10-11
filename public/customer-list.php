@@ -23,14 +23,20 @@ require_once __DIR__ . '/../services/CustomerService.php'; // Use service class 
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $pageSize = isset($_GET['pageSize']) ? max(1, intval($_GET['pageSize'])) : 10;
 $offset = ($page - 1) * $pageSize;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Initialize database connection
 $db = new Database();
 $customerService = new CustomerService($db); // Pass db to service if required
 
 // Fetch paginated customers using service
-$totalCustomers = $customerService->getCount();
-$customers = $customerService->getPaginated($pageSize, $offset) ?? [];
+if ($search !== '') {
+    $totalCustomers = $customerService->getCountBySearch($search);
+    $customers = $customerService->searchPaginated($search, $pageSize, $offset) ?? [];
+} else {
+    $totalCustomers = $customerService->getCount();
+    $customers = $customerService->getPaginated($pageSize, $offset) ?? [];
+}
 $totalPages = ceil($totalCustomers / $pageSize);
 ?>
 <!DOCTYPE html>
@@ -82,10 +88,14 @@ $totalPages = ceil($totalCustomers / $pageSize);
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
-                                        </label>
+                                        <form method="get" class="d-inline">
+                                            <label>
+                                                Search:
+                                                <input type="search" name="search" class="form-control form-control-sm" placeholder="Company name" aria-controls="entries" value="<?= htmlspecialchars($search) ?>">
+                                            </label>
+                                            <input type="hidden" name="pageSize" value="<?= $pageSize ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-1">Search</button>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -128,7 +138,7 @@ $totalPages = ceil($totalCustomers / $pageSize);
                                     <ul class="pagination justify-content-center">
                                         <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                             <li class="page-item<?= $p == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>"><?= $p ?></a>
+                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul>

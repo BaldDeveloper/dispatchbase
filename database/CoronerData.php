@@ -72,4 +72,20 @@ class CoronerData {
         $result = $this->db->query("SELECT coroner_number FROM coroner WHERE coroner_name = ? LIMIT 1", [$coronerName]);
         return !empty($result);
     }
+
+    // Returns the total number of coroners matching a search term
+    public function getCountBySearch(string $search): int {
+        $like = '%' . $search . '%';
+        $result = $this->db->query("SELECT COUNT(*) as cnt FROM coroner WHERE coroner_name LIKE ?", [$like]);
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    // Returns a paginated list of coroners matching a search term
+    public function searchPaginated(string $search, int $limit, int $offset): array {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $like = '%' . $search . '%';
+        $sql = "SELECT * FROM coroner WHERE coroner_name LIKE ? ORDER BY coroner_number DESC LIMIT $limit OFFSET $offset";
+        return $this->db->query($sql, [$like]);
+    }
 }

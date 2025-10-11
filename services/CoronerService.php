@@ -125,4 +125,24 @@ class CoronerService {
     public function getAll() {
         return $this->repo->getAll();
     }
+
+    /**
+     * Get the total number of coroners matching a search term.
+     * @param string $search
+     * @return int
+     */
+    public function getCountBySearch($search) {
+        return $this->repo->getCountBySearch($search);
+    }
+
+    /**
+     * Get paginated list of coroners matching a search term.
+     * @param string $search
+     * @param int $pageSize
+     * @param int $offset
+     * @return array
+     */
+    public function searchPaginated($search, $pageSize, $offset) {
+        return $this->repo->searchPaginated($search, $pageSize, $offset);
+    }
 }

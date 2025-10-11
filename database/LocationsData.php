@@ -75,4 +75,19 @@ class LocationsData {
         $result = $this->db->query('SELECT id FROM location WHERE name = ?', [$name]);
         return !empty($result);
     }
+
+    // Returns the total number of locations matching a search term
+    public function getCountBySearch($search) {
+        $like = '%' . $search . '%';
+        $result = $this->db->query('SELECT COUNT(*) AS cnt FROM location WHERE name LIKE ?', [$like]);
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    // Returns a paginated list of locations matching a search term
+    public function searchPaginated($search, $limit, $offset) {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $like = '%' . $search . '%';
+        return $this->db->query("SELECT * FROM location WHERE name LIKE ? ORDER BY id DESC LIMIT $limit OFFSET $offset", [$like]);
+    }
 }

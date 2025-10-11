@@ -98,6 +98,26 @@ class PouchService {
     }
 
     /**
+     * Get the total number of pouches matching a search term.
+     * @param string $search
+     * @return int
+     */
+    public function getCountBySearch($search) {
+        return $this->repo->getCountBySearch($search);
+    }
+
+    /**
+     * Get paginated list of pouches matching a search term.
+     * @param string $search
+     * @param int $pageSize
+     * @param int $offset
+     * @return array
+     */
+    public function searchPaginated($search, $pageSize, $offset) {
+        return $this->repo->searchPaginated($search, $pageSize, $offset);
+    }
+
+    /**
      * Return a summary string for a pouch record.
      * @param array $pouch
      * @return string

@@ -74,4 +74,22 @@ class CustomerData {
         $result = $this->db->query("SELECT customer_number FROM customer WHERE company_name = ? LIMIT 1", [$companyName]);
         return !empty($result);
     }
+
+    // Returns the total number of customers matching a search term
+    public function getCountBySearch(string $search): int {
+        $like = '%' . $search . '%';
+        $result = $this->db->query("SELECT COUNT(*) AS cnt FROM customer WHERE company_name LIKE ?", [$like]);
+        return isset($result[0]['cnt']) ? (int)$result[0]['cnt'] : 0;
+    }
+
+    // Returns a paginated list of customers matching a search term
+    public function searchPaginated(string $search, int $limit, int $offset): array {
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $like = '%' . $search . '%';
+        return $this->db->query(
+            "SELECT * FROM customer WHERE company_name LIKE ? ORDER BY customer_number DESC LIMIT $limit OFFSET $offset",
+            [$like]
+        );
+    }
 }

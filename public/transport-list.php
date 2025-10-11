@@ -13,10 +13,16 @@ $db = new Database();
 $transportService = new TransportService($db);
 $locationService = new LocationService($db);
 
-// Fetch paginated transports using service
-$totalTransports = $transportService->getCount();
-$transports = $transportService->getPaginated($pageSize, $offset);
-$totalPages = ceil($totalTransports / $pageSize);
+// Search functionality
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if ($search !== '') {
+    $totalTransports = $transportService->getCountBySearch($search);
+    $transports = $transportService->searchPaginated($search, $pageSize, $offset) ?? [];
+} else {
+    $totalTransports = $transportService->getCount();
+    $transports = $transportService->getPaginated($pageSize, $offset) ?? [];
+}
+$totalPages = $pageSize > 0 ? (int)ceil($totalTransports / $pageSize) : 1;
 $allLocations = $locationService->getAll();
 $locationNames = [];
 foreach ($allLocations as $loc) {
@@ -73,10 +79,14 @@ foreach ($allLocations as $loc) {
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
-                                        </label>
+                                        <form method="get" class="d-inline">
+                                            <label>
+                                                Search:
+                                                <input type="search" name="search" class="form-control form-control-sm" placeholder="Origin, Destination, or Decedent Name" aria-controls="entries" value="<?= htmlspecialchars($search) ?>">
+                                            </label>
+                                            <input type="hidden" name="pageSize" value="<?= $pageSize ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-1">Search</button>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -121,7 +131,7 @@ foreach ($allLocations as $loc) {
                                         <ul class="pagination justify-content-center">
                                             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                                 <li class="page-item<?= $i == $page ? ' active' : '' ?>">
-                                                    <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>"><?= $i ?></a>
+                                                    <a class="page-link" href="?page=<?= $i ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
                                                 </li>
                                             <?php endfor; ?>
                                         </ul>

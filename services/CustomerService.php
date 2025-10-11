@@ -112,4 +112,24 @@ class CustomerService {
     public function getPaginated($pageSize, $offset) {
         return $this->repo->getPaginated($pageSize, $offset);
     }
+
+    /**
+     * Get the total number of customers matching a search term.
+     * @param string $search
+     * @return int
+     */
+    public function getCountBySearch($search) {
+        return $this->repo->getCountBySearch($search);
+    }
+
+    /**
+     * Get paginated list of customers matching a search term.
+     * @param string $search
+     * @param int $pageSize
+     * @param int $offset
+     * @return array
+     */
+    public function searchPaginated($search, $pageSize, $offset) {
+        return $this->repo->searchPaginated($search, $pageSize, $offset);
+    }
 }

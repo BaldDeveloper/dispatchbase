@@ -18,8 +18,15 @@ $offset = ($page - 1) * $pageSize;
 // Initialize database connection
 $locationRepo = new LocationsData();
 $locationService = new LocationService(); // Instantiate service
-$totalLocations = $locationRepo->getCount();
-$locations = $locationRepo->getPaginated($pageSize, $offset) ?? [];
+
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if ($search !== '') {
+    $totalLocations = $locationService->getCountBySearch($search);
+    $locations = $locationService->searchPaginated($search, $pageSize, $offset) ?? [];
+} else {
+    $totalLocations = $locationService->getCount();
+    $locations = $locationService->getPaginated($pageSize, $offset) ?? [];
+}
 $totalPages = ceil($totalLocations / $pageSize);
 ?>
 <!DOCTYPE html>
@@ -70,10 +77,14 @@ $totalPages = ceil($totalLocations / $pageSize);
                                         </form>
                                     </div>
                                     <div class="col-sm-12 col-md-6 text-end">
-                                        <label>
-                                            Search:
-                                            <input type="search" class="form-control form-control-sm" placeholder="" aria-controls="entries" disabled>
-                                        </label>
+                                        <form method="get" class="d-inline">
+                                            <label>
+                                                Search:
+                                                <input type="search" name="search" class="form-control form-control-sm" placeholder="Location name" aria-controls="entries" value="<?= htmlspecialchars($search) ?>">
+                                            </label>
+                                            <input type="hidden" name="pageSize" value="<?= $pageSize ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-1">Search</button>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -118,7 +129,7 @@ $totalPages = ceil($totalLocations / $pageSize);
                                     <ul class="pagination justify-content-center">
                                         <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                             <li class="page-item<?= $p == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>"><?= $p ?></a>
+                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul>

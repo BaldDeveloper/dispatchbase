@@ -110,6 +110,26 @@ class LocationService {
     }
 
     /**
+     * Get the total number of locations matching a search term.
+     * @param string $search
+     * @return int
+     */
+    public function getCountBySearch($search) {
+        return $this->repo->getCountBySearch($search);
+    }
+
+    /**
+     * Get paginated list of locations matching a search term.
+     * @param string $search
+     * @param int $pageSize
+     * @param int $offset
+     * @return array
+     */
+    public function searchPaginated($search, $pageSize, $offset) {
+        return $this->repo->searchPaginated($search, $pageSize, $offset);
+    }
+
+    /**
      * Format a display name for a location (e.g., Name (City, State)).
      * @param array $location
      * @return string
