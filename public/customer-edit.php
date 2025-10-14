@@ -22,6 +22,7 @@ require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../services/CustomerService.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/validation.php';
+require_once __DIR__ . '/../includes/form_helpers.php';
 $states = include __DIR__ . '/../includes/states.php';
 
 $db = new Database();
@@ -194,19 +195,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                     <div class="col-md-6">
                                         <label for="company_name" class="form-label required">Company Name</label>
                                         <input type="text" class="form-control<?= ($error && !$companyName) ? ' is-invalid' : '' ?>" id="company_name" name="company_name" value="<?= htmlspecialchars($companyName ?? '') ?>" required>
-                                        <div class="invalid-feedback">Please fill out this field.</div>
+                                        <?php render_invalid_feedback('Please fill out this field.', $error && !$companyName); ?>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
                                         <input type="text" class="form-control<?= ($error && $phoneNumber !== '' && !is_valid_phone($phoneNumber)) ? ' is-invalid' : '' ?>" id="phone_number" name="phone_number" value="<?= htmlspecialchars($phoneNumber ?? '') ?>" maxlength="14" pattern="<?= PHONE_PATTERN ?>" autocomplete="off">
-                                        <div class="invalid-feedback">Invalid phone number format.</div>
+                                        <?php render_invalid_feedback('Invalid phone number format.', $error && $phoneNumber !== '' && !is_valid_phone($phoneNumber)); ?>
                                     </div>
                                 </div>
                                 <div class="row form-section">
                                     <div class="col-md-6">
                                         <label for="address_1" class="form-label required">Address 1</label>
                                         <input type="text" class="form-control<?= ($error && !$address1) ? ' is-invalid' : '' ?>" id="address_1" name="address_1" value="<?= htmlspecialchars($address1 ?? '') ?>" required>
-                                        <div class="invalid-feedback">Please fill out this field.</div>
+                                        <?php render_invalid_feedback('Please fill out this field.', $error && !$address1); ?>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="address_2" class="form-label">Address 2</label>
@@ -217,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                     <div class="col-md-4">
                                         <label for="city" class="form-label required">City</label>
                                         <input type="text" class="form-control<?= ($error && !$city) ? ' is-invalid' : '' ?>" id="city" name="city" value="<?= htmlspecialchars($city ?? '') ?>" required>
-                                        <div class="invalid-feedback">Please fill out this field.</div>
+                                        <?php render_invalid_feedback('Please fill out this field.', $error && !$city); ?>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="state" class="form-label required">State</label>
@@ -227,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                                 <option value="<?= htmlspecialchars($abbr) ?>" <?= (isset($state) && $state === $abbr) ? 'selected' : '' ?>><?= htmlspecialchars($abbr) ?> - <?= htmlspecialchars($name) ?></option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <div class="invalid-feedback">Please fill out this field.</div>
+                                        <?php render_invalid_feedback('Please fill out this field.', $error && !$state); ?>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="zip" class="form-label">Zip</label>
@@ -238,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customer']) &&
                                     <div class="col-md-6">
                                         <label for="email_address" class="form-label required">Email Address</label>
                                         <input type="email" class="form-control email-pattern<?= ($error && !is_valid_email($emailAddress)) ? ' is-invalid' : '' ?>" id="email_address" name="email_address" value="<?= htmlspecialchars($emailAddress ?? '') ?>" required pattern="<?= EMAIL_PATTERN ?>">
-                                        <div class="invalid-feedback">Please fill out this field.</div>
+                                        <?php render_invalid_feedback('Please fill out this field.', $error && !is_valid_email($emailAddress)); ?>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">

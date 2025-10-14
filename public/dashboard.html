@@ -7,10 +7,11 @@
     <meta name="description" content="" />
     <meta name="author" content="" />
     <title>Dashboard - Dispatch</title>
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
     <link href="css/styles.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
 </head>
@@ -18,33 +19,20 @@
 <div id="topnav"></div>
 <div id="layoutSidenav">
     <div id="layoutSidenav_nav"></div>
-    <?php include 'sidebar.html'; ?>
     <div id="layoutSidenav_content">
         <main>
-            <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+            <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-5" style="padding-bottom: 9%;">
                 <div class="container-xl px-4">
                     <div class="page-header-content pt-4">
                         <div class="row align-items-center justify-content-between">
-                            <div class="col-auto mt-4">
-                                <h1 class="page-header-title">
-                                    <div class="page-header-icon"><i data-feather="activity"></i></div>
-                                    Dashboard
-                                </h1>
-                                <div class="page-header-subtitle">Example dashboard overview and content summary</div>
-                            </div>
-                            <div class="col-12 col-xl-auto mt-4">
-                                <div class="input-group input-group-joined border-0" style="width: 16.5rem">
-                                    <span class="input-group-text"><i class="text-primary" data-feather="calendar"></i></span>
-                                    <input class="form-control ps-0 pointer" id="litepickerRangePlugin" placeholder="Select date range..." />
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>
             </header>
 
             <!-- Main page content-->
-            <div class="container-xl px-4 mt-n10">
+            <div class="container-xl px-4 mt-n-custom-6">
                 <div class="row">
                     <div class="col-xxl-4 col-xl-12 mb-4">
                         <div class="card h-100">
@@ -167,8 +155,8 @@
                             <div class="card-header">
                                 Progress Tracker
                                 <div class="dropdown no-caret">
-                                    <button class="btn btn-transparent-dark btn-icon dropdown-toggle" id="dropdownMenuButton" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="text-gray-500" data-feather="more-vertical"></i></button>
-                                    <div class="dropdown-menu dropdown-menu-end animated--fade-in-up" aria-labelledby="dropdownMenuButton">
+                                    <button class="btn btn-transparent-dark btn-icon dropdown-toggle" id="tasksDropdownMenuButton" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="text-gray-500" data-feather="more-vertical"></i></button>
+                                    <div class="dropdown-menu dropdown-menu-end animated--fade-in-up" aria-labelledby="tasksDropdownMenuButton">
                                         <a class="dropdown-item" href="#!">
                                             <div class="dropdown-item-icon"><i class="text-gray-500" data-feather="list"></i></div>
                                             Manage Tasks
@@ -1127,12 +1115,7 @@
             if (topnav) {
                 topnav.innerHTML = html;
                 feather.replace();
-                // Sidebar toggle logic - moved here to ensure #sidebarToggle exists
-                document.addEventListener('click', function(e) {
-                    if (e.target.closest('#sidebarToggle')) {
-                        document.getElementById('layoutSidenav_nav').classList.toggle('sidenav-toggled');
-                    }
-                });
+                if (typeof initSidebarToggle === 'function') initSidebarToggle();
             }
         });
     // Dynamically load sidebar.html into #layoutSidenav_nav
@@ -1141,7 +1124,7 @@
         .then(html => {
             var sidenav = document.getElementById('layoutSidenav_nav');
             if (sidenav) {
-                sidenav.outerHTML = html;
+                sidenav.innerHTML = html;
                 feather.replace();
             }
         });

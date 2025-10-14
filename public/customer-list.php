@@ -18,6 +18,7 @@
 
 require_once __DIR__ . '/../database/Database.php';
 require_once __DIR__ . '/../services/CustomerService.php'; // Use service class only
+require_once __DIR__ . '/../includes/table_helpers.php';
 
 // Pagination setup
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -38,6 +39,22 @@ if ($search !== '') {
     $customers = $customerService->getPaginated($pageSize, $offset) ?? [];
 }
 $totalPages = ceil($totalCustomers / $pageSize);
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
+// Prepare table headers and rows for helper
+$headers = ['ID', 'Company Name', 'Email', 'City', 'State', 'Phone'];
+$rows = array_map(function($c) {
+    return [
+        'ID' => '<a href="customer-edit.php?mode=edit&id=' . htmlspecialchars($c['customer_number'] ?? '') . '" class="text-primary">' . htmlspecialchars($c['customer_number'] ?? '') . '</a>',
+        'Company Name' => htmlspecialchars($c['company_name'] ?? ''),
+        'Email' => htmlspecialchars($c['email_address'] ?? ''),
+        'City' => htmlspecialchars($c['city'] ?? ''),
+        'State' => htmlspecialchars($c['state'] ?? ''),
+        'Phone' => htmlspecialchars($c['phone_number'] ?? ''),
+    ];
+}, $customers);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,50 +116,10 @@ $totalPages = ceil($totalCustomers / $pageSize);
                                     </div>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover mb-0">
-                                        <thead class="table-light">
-                                        <tr>
-                                            <th>Customer #</th>
-                                            <th>Company Name</th>
-                                            <th>Address 1</th>
-                                            <th>City</th>
-                                            <th>State</th>
-                                            <th>Zip</th>
-                                            <th>Phone Number</th>
-                                            <th>Email Address</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php foreach ($customers as $customer): ?>
-                                            <tr>
-                                                <td><a href="customer-edit.php?mode=edit&id=<?= htmlspecialchars($customer['customer_number'] ?? '') ?>"><?= htmlspecialchars($customer['customer_number'] ?? '') ?></a></td>
-                                                <td><?= htmlspecialchars($customerService->formatDisplayName($customer)) ?></td>
-                                                <td><?= htmlspecialchars($customer['address_1'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($customer['city'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($customer['state'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($customer['zip'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($customer['phone_number'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($customer['email_address'] ?? '') ?></td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                        <?php if (empty($customers)): ?>
-                                            <tr>
-                                                <td colspan="8" class="text-danger">No customers found.</td>
-                                            </tr>
-                                        <?php endif; ?>
-                                        </tbody>
-                                    </table>
+                                    <?php render_table($headers, $rows); ?>
                                 </div>
                                 <!-- Pagination controls -->
-                                <nav aria-label="Customer list pagination" class="mt-3">
-                                    <ul class="pagination justify-content-center">
-                                        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                                            <li class="page-item<?= $p == $page ? ' active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $p ?>&pageSize=<?= $pageSize ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
-                                            </li>
-                                        <?php endfor; ?>
-                                    </ul>
-                                </nav>
+                                <?php render_pagination($page, $totalPages, $pageSize, 'customer-list.php?pageSize=' . $pageSize); ?>
                             </div> <!-- /.dataTables_wrapper -->
                         </div> <!-- /.card-body -->
                     </div> <!-- /.card -->
